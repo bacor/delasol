@@ -1,8 +1,8 @@
 import unittest
 from music21.pitch import Pitch
 from hexachord.gamut_graph import HexachordGraph
-from hexachord.gamut_graph import GamutGraph, HardGamutGraph, SoftGamutGraph
-from hexachord.gamut_graph import TINCTORIS_MUTATIONS
+from hexachord.gamut_graph import GamutGraph, HardContinentalGamut, SoftContinentalGamut
+from hexachord.gamut_graph import CONTINENTAL_MUTATIONS
 import networkx as nx
 import numpy as np
 
@@ -78,10 +78,10 @@ class TestGamutGraph(unittest.TestCase):
         self.assertListEqual(neighbours[H3], [H1, H2, H4])
         self.assertListEqual(neighbours[H4], [H2, H3])
 
-    def test_tinctoris_mutations(self):
+    def test_CONTINENTAL_MUTATIONS(self):
         H1 = HexachordGraph("G2")
         H2 = HexachordGraph("C3")
-        G = GamutGraph(hexachords=[H1, H2], mutations=TINCTORIS_MUTATIONS)
+        G = GamutGraph(hexachords=[H1, H2], mutations=CONTINENTAL_MUTATIONS)
         self.assertTrue((G.names["fa1"], G.names["re2"]) in G.edges)
         self.assertTrue((G.names["fa2"], G.names["la1"]) in G.edges)
 
@@ -96,7 +96,7 @@ class TestGamutGraph(unittest.TestCase):
     def test_spine(self):
         H1 = HexachordGraph("G2")
         H2 = HexachordGraph("C3")
-        G = GamutGraph(hexachords=[H1, H2], mutations=TINCTORIS_MUTATIONS)
+        G = GamutGraph(hexachords=[H1, H2], mutations=CONTINENTAL_MUTATIONS)
         spine = "ut1 re1 mi1 fa1 re2 mi2 fa2 sol2 la2 fi2".split(" ")
         spine = [G.names[name] for name in spine]
         self.assertListEqual(G.spine, spine)
@@ -116,28 +116,28 @@ class TestGamutGraph(unittest.TestCase):
 
     def test_fill_gap(self):
         [H1, H2, H4] = [HexachordGraph(p) for p in "G2 C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H1, H2, H4], mutations=TINCTORIS_MUTATIONS)
+        G = GamutGraph(hexachords=[H1, H2, H4], mutations=CONTINENTAL_MUTATIONS)
         filled = G.fill_gap(Pitch("C3"), Pitch("G3"))
         expected = [Pitch("C3"), Pitch("D3"), Pitch("E3"), Pitch("F3")]
         self.assertListEqual(filled, expected)
 
     def test_fill_gap_down(self):
         [H1, H2, H4] = [HexachordGraph(p) for p in "G2 C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H1, H2, H4], mutations=TINCTORIS_MUTATIONS)
+        G = GamutGraph(hexachords=[H1, H2, H4], mutations=CONTINENTAL_MUTATIONS)
         filled = G.fill_gap(Pitch("G3"), Pitch("E3"))
         expected = [Pitch("G3"), Pitch("F3")]
         self.assertListEqual(filled, expected)
 
     def test_fill_gap_flats(self):
         [H2, H4] = [HexachordGraph(p) for p in "C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H2, H4], mutations=TINCTORIS_MUTATIONS)
+        G = GamutGraph(hexachords=[H2, H4], mutations=CONTINENTAL_MUTATIONS)
         filled = G.fill_gap(Pitch("G3"), Pitch("B-3"))
         expected = [Pitch("G3"), Pitch("A3")]
         self.assertListEqual(filled, expected)
 
     def test_fill_gaps(self):
         [H2, H4] = [HexachordGraph(p) for p in "C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H2, H4], mutations=TINCTORIS_MUTATIONS)
+        G = GamutGraph(hexachords=[H2, H4], mutations=CONTINENTAL_MUTATIONS)
         melody = [Pitch(p) for p in "C3 G3 D4".split(" ")]
         filled, is_original = G.fill_gaps(melody)
         expected = [Pitch(p) for p in "C3 D3 E3 F3 G3 A3 B3 C4 D4".split(" ")]
@@ -148,7 +148,7 @@ class TestGamutGraph(unittest.TestCase):
 
     def test_fill_gaps_repetitions(self):
         [H2, H4] = [HexachordGraph(p) for p in "C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H2, H4], mutations=TINCTORIS_MUTATIONS)
+        G = GamutGraph(hexachords=[H2, H4], mutations=CONTINENTAL_MUTATIONS)
         melody = [Pitch(p) for p in "C3 E3 E3 E3 G3".split(" ")]
         filled, is_original = G.fill_gaps(melody)
         expected = [Pitch(p) for p in "C3 D3 E3 E3 E3 F3 G3".split(" ")]
@@ -158,7 +158,7 @@ class TestGamutGraph(unittest.TestCase):
 
     def test_fill_gaps_jumpy(self):
         [H2, H4] = [HexachordGraph(p) for p in "C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H2, H4], mutations=TINCTORIS_MUTATIONS)
+        G = GamutGraph(hexachords=[H2, H4], mutations=CONTINENTAL_MUTATIONS)
         melody = [Pitch(p) for p in "C3 G3 E3 C4 B3 B3".split(" ")]
         filled, is_original = G.fill_gaps(melody)
         expected = [
@@ -167,9 +167,9 @@ class TestGamutGraph(unittest.TestCase):
         self.assertListEqual(expected, filled)
 
 
-class TestHardGamutGraph(unittest.TestCase):
+class TestHardContinentalGamut(unittest.TestCase):
     def test_hard_gamut(self):
-        gamut = HardGamutGraph()
+        gamut = HardContinentalGamut()
         self.assertEqual(gamut.hexachords[1].tonic, Pitch("G2"))
         self.assertEqual(gamut.hexachords[2].tonic, Pitch("C3"))
         self.assertEqual(gamut.hexachords[4].tonic, Pitch("G3"))
@@ -177,9 +177,9 @@ class TestHardGamutGraph(unittest.TestCase):
         self.assertEqual(gamut.hexachords[7].tonic, Pitch("G4"))
 
 
-class TestSoftGamutGraph(unittest.TestCase):
+class TestSoftContinentalGamut(unittest.TestCase):
     def test_soft_gamut(self):
-        gamut = SoftGamutGraph()
+        gamut = SoftContinentalGamut()
         self.assertEqual(gamut.hexachords[2].tonic, Pitch("C3"))
         self.assertEqual(gamut.hexachords[3].tonic, Pitch("F3"))
         self.assertEqual(gamut.hexachords[5].tonic, Pitch("C4"))
@@ -188,6 +188,6 @@ class TestSoftGamutGraph(unittest.TestCase):
     def test_issue1(self):
         melody = ["D3", "F3", "F3", "G3", "A3", "B-3", "B-3", "A3", "F3", "G3"]
         pitches = [Pitch(p) for p in melody]
-        gamut = SoftGamutGraph()
+        gamut = SoftContinentalGamut()
         filled, original = gamut.fill_gaps(pitches)
         self.assertTrue(True)

@@ -1,7 +1,7 @@
 import unittest
 from music21.pitch import Pitch
 from hexachord.utils import segment_deviations
-from hexachord.gamut_graph import HardGamutGraph, HexachordGraph
+from hexachord.gamut_graph import HardContinentalGamut, HexachordGraph
 from hexachord.parse_graph import ParseGraph
 
 
@@ -11,7 +11,7 @@ def hexachord_match_fn(node, target):
 
 class TestParseGraph(unittest.TestCase):
     def test_exception_jumps(self):
-        gamut = HardGamutGraph()
+        gamut = HardContinentalGamut()
         seq = [Pitch(p) for p in "G3 B3".split(" ")]
         self.assertRaises(ValueError, lambda: ParseGraph(gamut, seq))
 
@@ -39,7 +39,7 @@ class TestParseGraph(unittest.TestCase):
         self.assertEqual(node2attrs["name"], "re2")
 
     def test_widths(self):
-        gamut = HardGamutGraph()
+        gamut = HardContinentalGamut()
         seq = [Pitch(p) for p in "A2 B2 C3 D3 E3 F3 E3 D3 C3 B2 A2".split(" ")]
         parse = ParseGraph(gamut, seq)
         expected = [1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1]

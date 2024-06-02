@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from typing import Union, Iterable, Optional
 from music21.pitch import Pitch
 from music21.scale import ConcreteScale, Direction
+from music21.key import KeySignature
 from .utils import SUBSCRIPTS, draw_graph, as_pitch
 
 # Number all possible hexachords within some bounds (in practice we only need 0-6)
@@ -59,7 +60,7 @@ class HexachordGraph(nx.DiGraph):
         self,
         step_weight: float = 1,
         loop_weight: float = 0.5,
-        fa_super_la_weight: float = 1,
+        fa_super_la_weight: float = 1.5,
         weights: np.ndarray = None,
     ):
         if weights is None:
@@ -100,7 +101,7 @@ class HexachordGraph(nx.DiGraph):
         plt.ylim(-0.5, 0.5)
 
 
-TINCTORIS_MUTATIONS = {
+CONTINENTAL_MUTATIONS = {
     "natural": {
         "up": {
             "hard": [(5, 2)],
@@ -129,6 +130,35 @@ TINCTORIS_MUTATIONS = {
     },
 }
 
+ENGLISH_MUTATIONS = {
+    "natural": {
+        "up": {
+            "hard": [(6, 3)],
+            "soft": [(6, 4)],
+        },
+        "down": {
+            "hard": [(4, 6)],
+            "soft": [(3, 6)],
+        },
+    },
+    "hard": {
+        "up": {
+            "natural": [(6, 4)],
+        },
+        "down": {
+            "natural": [(3, 6)],
+        },
+    },
+    "soft": {
+        "up": {
+            "natural": [(6, 3)],
+        },
+        "down": {
+            "natural": [(4, 6)],
+        },
+    },
+}
+
 GamutGraphNode = tuple[int, Pitch]
 
 
@@ -137,6 +167,7 @@ class GamutGraph(nx.DiGraph):
         self,
         hexachords: Optional[Iterable[HexachordGraph]] = None,
         mutations: Optional[dict] = None,
+        mutation_weight: float = 2,
     ):
         super().__init__()
         self.hexachords = {}
@@ -150,7 +181,7 @@ class GamutGraph(nx.DiGraph):
             for hexachord in hexachords:
                 self.add_hexachord(hexachord)
         if mutations:
-            self.add_mutations(mutations)
+            self.add_mutations(mutations, weight=mutation_weight)
 
     @property
     def names(self) -> dict[str, GamutGraphNode]:
@@ -259,7 +290,18 @@ class GamutGraph(nx.DiGraph):
         """Fill the gap between two nodes by traversing the spine of the graph. Note that the
         returned filler will not include the target pitch."""
         if not source_pitch in self.pitches or not target_pitch in self.pitches:
-            raise ValueError("Source and target pitches must be in the gamut graph")
+
+            # Crucial assumption: ignore accidentals!
+            if source_pitch.accidental is not None:
+                source_pitch = Pitch(source_pitch.nameWithOctave)
+                source_pitch.accidental = None
+            if target_pitch.accidental is not None:
+                target_pitch = Pitch(target_pitch.nameWithOctave)
+                target_pitch.accidental = None
+            if not source_pitch in self.pitches or not target_pitch in self.pitches:
+                raise ValueError(
+                    "Source and target pitches are not in the gamut, even when ignoring accidentals."
+                )
         if source_pitch == target_pitch:
             return [source_pitch]
 
@@ -305,8 +347,6 @@ class GamutGraph(nx.DiGraph):
     def solmize(self, node: GamutGraphNode):
         """Return the solmization of a pitch in the gamut graph"""
         return self.nodes[node]["syllable"]
-        # hexachord = self.hexachords[self.hexachord(pitch)]
-        # return hexachord.solmize(pitch
 
     def draw(self, show_axes: bool = True, fig=None, **kws):
         if fig is None:
@@ -329,11 +369,11 @@ class GamutGraph(nx.DiGraph):
             plt.axis("off")
 
 
-class HardGamutGraph(GamutGraph):
+class HardContinentalGamut(GamutGraph):
     def __init__(
         self,
         hexachords: Optional[list[HexachordGraph]] = None,
-        mutations: Optional[dict] = TINCTORIS_MUTATIONS,
+        mutations: Optional[dict] = CONTINENTAL_MUTATIONS,
         hexachord_kws: Optional[dict] = {},
     ):
         if hexachords is None:
@@ -347,11 +387,12 @@ class HardGamutGraph(GamutGraph):
         super().__init__(hexachords=hexachords, mutations=mutations)
 
 
-class SoftGamutGraph(GamutGraph):
+class SoftContinentalGamut(GamutGraph):
     def __init__(
         self,
         hexachords: Optional[list[HexachordGraph]] = None,
-        mutations: Optional[dict] = TINCTORIS_MUTATIONS,
+        mutations: Optional[dict] = CONTINENTAL_MUTATIONS,
+        extend_below: bool = True,
         hexachord_kws: Optional[dict] = {},
     ):
         if hexachords is None:
@@ -361,15 +402,82 @@ class SoftGamutGraph(GamutGraph):
                 HexachordGraph("C4", **hexachord_kws),
                 HexachordGraph("F4", **hexachord_kws),
             ]
+        if extend_below:
+            hexachords = [HexachordGraph("F2", **hexachord_kws)] + hexachords
         super().__init__(hexachords=hexachords, mutations=mutations)
 
 
-GAMUTS = {"hard": HardGamutGraph, "soft": SoftGamutGraph}
+class SoftEnglishGamut(GamutGraph):
+    def __init__(
+        self,
+        hexachords=None,
+        mutations=ENGLISH_MUTATIONS,
+        mutation_weight=0.75,
+        hexachord_kws={},
+    ):
+        kws = dict(
+            fa_super_la=False,
+            loop_weight=0.5,
+            step_weight=1,
+            fa_super_la_weight=1,
+        )
+        kws.update(**hexachord_kws)
+        if hexachords is None:
+            hexachords = [
+                HexachordGraph("C3", **kws),
+                HexachordGraph("F3", **kws),
+                HexachordGraph("C4", **kws),
+                HexachordGraph("F4", **kws),
+            ]
+        super().__init__(
+            hexachords=hexachords, mutations=mutations, mutation_weight=mutation_weight
+        )
 
 
-def get_gamut(name: str, **kws) -> GamutGraph:
-    """Returns a gamut by its name."""
+GAMUTS = {
+    "hard-continental": HardContinentalGamut,
+    "soft-continental": SoftContinentalGamut,
+    "soft-english": SoftEnglishGamut,
+}
+
+SHARPS_TO_GAMUT_NAME = {
+    "continental": {
+        0: "hard-continental",
+        -1: "soft-continental",
+    },
+    "english": {
+        -1: "soft-english",
+    },
+}
+
+
+def get_gamut(
+    name: str = None,
+    style: str = None,
+    sharps: int = None,
+    key: KeySignature = None,
+    **kws,
+) -> GamutGraph:
+    """Returns a gamut by its name, the style or the number of sharps"""
+    if key is not None:
+        sharps = key.sharps
+
+    if sharps is not None:
+        if style is None:
+            raise ValueError(
+                "No solmization style specified. This is required if you provide a key signature or the number of sharps"
+            )
+        if style not in SHARPS_TO_GAMUT_NAME:
+            raise ValueError("Invalid style {style}")
+        if sharps not in SHARPS_TO_GAMUT_NAME[style]:
+            raise ValueError(
+                f"Number of sharps ({sharps}) is not supported for style {style}."
+            )
+        name = SHARPS_TO_GAMUT_NAME[style][sharps]
+
     if name not in GAMUTS:
-        raise ValueError("Invalid gamut name")
+        raise ValueError(
+            f"Invalid gamut name '{name}'. Suppored names are: {', '.join(GAMUTS.keys())}"
+        )
     else:
         return GAMUTS[name](**kws)

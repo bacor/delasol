@@ -4,4 +4,7 @@
 # Copyright © 2020 Bas Cornelissen
 # -------------------------------------------------------------------
 
+from .solmization import solmize
 from .solmization import Solmization
+from .solmization import StreamSolmization
+from .gamut_graph import get_gamut

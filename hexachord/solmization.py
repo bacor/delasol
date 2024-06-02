@@ -1,11 +1,19 @@
-from typing import Union
+from typing import Union, Callable
 from collections.abc import Iterable
+from collections import Counter
+from copy import deepcopy
 import music21
 from music21.pitch import Pitch
 from music21.note import Note
 from .parse_graph import ParseGraph
 from .gamut_graph import GamutGraph, get_gamut
 from .utils import set_lyrics_color, SUBSCRIPTS
+
+EVAL_CORRECT: int = 0
+EVAL_TARGET_MISSING: int = 1
+EVAL_INCORRECT: int = 2
+EVAL_INCORRECT_INSERTION: int = 3
+EVAL_INCORRECT_DELETION: int = 4
 
 
 # TODO should be replaced
@@ -45,12 +53,37 @@ def _extract_from_path_segments(segments, isOriginal):
     return newSegments
 
 
-SolmizationInput = Union[
-    music21.stream.Score,
-    music21.stream.Stream,
-    Iterable[Pitch],
-    Iterable[Note],
-]
+def extract_lyrics(notes: Iterable[Note], lyric_num: int) -> list[str]:
+    extracted = []
+    for note in notes:
+        lyrics = {lyric.number: lyric for lyric in note.lyrics}
+        if lyric_num in lyrics:
+            extracted.append(lyrics[lyric_num].text)
+        else:
+            extracted.append(None)
+    return extracted
+
+
+def evaluator(syllable: str, target: str) -> str:
+    """
+    Evaluate a note based on the target lyrics.
+    """
+    if target is not None and "*" in target:
+        target = target.split("*")[1]
+
+    if target == syllable:
+        return "correct"
+    elif target == "?":
+        return "missing"
+    elif target == "" and syllable != "":
+        return "insertion"
+    elif target != "" and syllable == "":
+        return "deletion"
+    else:
+        return "incorrect"
+
+
+SolmizationInput = Union[Iterable[Pitch], Iterable[Note], Iterable[str]]
 GamutInput = Union[GamutGraph, str]
 
 
@@ -70,26 +103,14 @@ class Solmization:
         input: SolmizationInput = None,
         gamut: GamutInput = None,
     ) -> tuple[list[Pitch], GamutGraph]:
-        # Case one: an input stream, such as a score.
-        if isinstance(input, music21.stream.Score):
-            notes = input.parts[0].flat.notes
-            pitches = [Pitch(n.pitch) for n in notes]
-            if gamut is None:
-                key = input.parts[0].measure(1).keySignature
-                if key == music21.key.KeySignature(0):
-                    gamut = "hard"
-                elif key == music21.key.KeySignature(-1):
-                    gamut = "soft"
-                else:
-                    raise Exception(f"Key signature {key} not supported")
+        if isinstance(input, music21.stream.Stream):
+            raise ValueError("Use StreamSolmation for stream inputs")
 
         # Case two: an iterable of pitches, notes, or strings
         elif isinstance(input, Iterable):
             if gamut is None:
                 raise ValueError("Please provide a gamut")
-            if isinstance(input, music21.stream.Stream):
-                pitches = [Pitch(n.pitch) for n in input.flat.notes]
-            elif isinstance(input[0], music21.pitch.Pitch):
+            if isinstance(input[0], music21.pitch.Pitch):
                 pitches = [Pitch(p) for p in input]
             elif isinstance(input[0], music21.note.Note):
                 pitches = [Pitch(n.pitch) for n in input]
@@ -109,10 +130,8 @@ class Solmization:
         return pitches, gamut
 
     def solmize(self, input: SolmizationInput, gamut: GamutInput = None, **kwargs):
-        self.pitches, self.gamut = self._validate_input(input, gamut)
-        self.input = input
-
         # Gap-fill the melody and build a solmization graph (steps=gap filled, pitches=originals)
+        self.pitches, self.gamut = self._validate_input(input, gamut)
         self.steps, self.is_original = self.gamut.fill_gaps(self.pitches)
         self.parse = ParseGraph(self.gamut, self.steps, **kwargs)
         self.step_segments = self.parse.path_segments()
@@ -151,6 +170,71 @@ class Solmization:
         key = "syllables" if subscript else "raw_syllables"
         return [data[key][0] for data in self.iter_solmizations()]
 
+    def evaluate(
+        self,
+        targets: Iterable[str],
+        return_counts: bool = True,
+        evaluator: Callable[[str, str], str] = evaluator,
+    ):
+        predictions = self.best_syllables(subscript=False)
+        evaluation = [evaluator(pred, targ) for pred, targ in zip(predictions, targets)]
+        if return_counts:
+            return dict(Counter(evaluation))
+        else:
+            return evaluation
+
+    def show_steps(self, **kwargs):
+        """Show a stream of the the gap-filled melody."""
+        notes = []
+        for pitch, isOrig in zip(self.steps, self.is_original):
+            note = music21.note.Note(pitch)
+            if not isOrig:
+                note.notehead = "diamond"
+                note.style.color = "#999999"
+            note.stemDirection = "noStem"
+            notes.append(note)
+        stream = music21.stream.Stream(notes)
+        return stream.show(**kwargs)
+
+    def draw_parse(self, **kwargs):
+        """Draw the parse graph"""
+        return self.parse.draw(**kwargs)
+
+
+class StreamSolmization(Solmization):
+    def __init__(
+        self,
+        stream: music21.stream.Stream,
+        style: str = "continental",
+        gamut: GamutInput = None,
+        in_place: bool = True,
+        **kwargs,
+    ):
+        self.stream = stream if in_place else deepcopy(stream)
+        self.stream.stripTies(inPlace=True)
+        if self.stream.hasPartLikeStreams():
+            if len(self.stream.parts) >= 2:
+                print(
+                    f"Warning: found {len(self.stream.parts)} parts, but only the first part of the stream will be used"
+                )
+                self.stream = self.stream.parts[0]
+        self.style = style
+        if gamut is None:
+            key = self.stream.flat.keySignature
+            gamut = get_gamut(style=self.style, key=key)
+        super().__init__(self.stream.flat.notes, gamut=gamut, **kwargs)
+
+    def evaluate(
+        self, target_lyrics: int = None, targets: Iterable[str] = None, **kwargs
+    ):
+        if targets is None:
+            if target_lyrics is None:
+                raise ValueError(
+                    "Please specify target_lyrics: the lyric number containing the target syllables"
+                )
+            targets = extract_lyrics(self.stream.flat.notes, target_lyrics)
+        return super().evaluate(targets, **kwargs)
+
     def annotate_note(
         self,
         note: Note,
@@ -185,16 +269,29 @@ class Solmization:
 
     def annotate(
         self,
-        stream: music21.stream.Stream,
-        num_paths: int = 6,
         targets: Iterable[str] = None,
         target_lyrics: int = None,
-        lyric_offset: int = 0,
+        lyric_offset: int = None,
+        best_only: bool = False,
+        num_paths: int = 6,
+        show_more_paths: bool = True,
         show_weights: bool = True,
+        show_segments: bool = True,
         show_all_segments: bool = True,
         grey_lyrics_num: int = None,
     ):
-        notes = stream.flat.notes
+        """Annotate a stream with solmization syllables."""
+        if best_only:
+            num_paths = 1
+            show_segments = False
+            show_more_paths = False
+            show_weights = False
+
+        notes = self.stream.flat.notes
+
+        if lyric_offset is None:
+            lyric_offset = max([max([l.number for l in n.lyrics]) for n in notes]) + 1
+
         for segment in self.iter_segments():
             start, end = segment["start"], segment["end"]
             segment_notes = notes[start : end + 1]
@@ -220,34 +317,38 @@ class Solmization:
                         note, text, syllable, number=rank + lyric_offset, **opts
                     )
 
-            if len(segment["paths"]) > num_paths:
+            if show_more_paths and len(segment["paths"]) > num_paths:
                 segment_notes[0].addLyric(
                     f"({len(segment['paths']) - num_paths} more paths)"
                 )
 
-            if len(segment_notes) > 1 and (
-                show_all_segments or len(segment["paths"]) > 1
+            if (
+                show_segments
+                and len(segment_notes) > 1
+                and (show_all_segments or len(segment["paths"]) > 1)
             ):
                 line = music21.spanner.Line(segment_notes)
                 line.lineType = "dotted"
-                stream.insert(0, line)
+                self.stream.insert(0, line)
 
         if grey_lyrics_num is not None:
             set_lyrics_color(notes, grey_lyrics_num, "#999999")
 
-        return stream
+        return self.stream
 
-    def show_steps(self, **kwargs):
-        notes = []
-        for pitch, isOrig in zip(self.steps, self.is_original):
-            note = music21.note.Note(pitch)
-            if not isOrig:
-                note.notehead = "diamond"
-                note.style.color = "#999999"
-            note.stemDirection = "noStem"
-            notes.append(note)
-        stream = music21.stream.Stream(notes)
-        return stream.show(**kwargs)
 
-    def draw(self, **kwargs):
-        return self.parse.draw(**kwargs)
+def solmize(
+    input,
+    style: str = None,
+    gamut: GamutInput = None,
+    to_stream: bool = False,
+    **kwargs,
+) -> Solmization:
+    """A convenience function that creates a Solmization object depending on the input type."""
+    if to_stream:
+        input = music21.stream.Stream(input)
+    if isinstance(input, music21.stream.Stream):
+        solmization = StreamSolmization(input, style=style, gamut=gamut, **kwargs)
+    else:
+        solmization = Solmization(input, gamut=gamut, **kwargs)
+    return solmization
