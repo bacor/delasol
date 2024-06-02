@@ -1,8 +1,14 @@
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------
+# Author: Bas Cornelissen
+# Copyright © 2024 Bas Cornelissen
+# -------------------------------------------------------------------
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
 from typing import Callable, Iterable, Any
-from hexachord.utils import segment_deviations, draw_graph
+
+from .utils import segment_deviations, draw_graph
 
 OrigGraphNode = Any
 ParseGraphNode = tuple[int, Any]

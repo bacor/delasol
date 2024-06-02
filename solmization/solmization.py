@@ -1,19 +1,21 @@
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------
+# Author: Bas Cornelissen
+# Copyright © 2024 Bas Cornelissen
+# -------------------------------------------------------------------
 from typing import Union, Callable
 from collections.abc import Iterable
 from collections import Counter
 from copy import deepcopy
-import music21
+from music21.spanner import Line
+from music21.stream import Stream
 from music21.pitch import Pitch
 from music21.note import Note
+
+# Local imports
 from .parse_graph import ParseGraph
 from .gamut_graph import GamutGraph, get_gamut
 from .utils import set_lyrics_color, SUBSCRIPTS
-
-EVAL_CORRECT: int = 0
-EVAL_TARGET_MISSING: int = 1
-EVAL_INCORRECT: int = 2
-EVAL_INCORRECT_INSERTION: int = 3
-EVAL_INCORRECT_DELETION: int = 4
 
 
 # TODO should be replaced
@@ -103,19 +105,19 @@ class Solmization:
         input: SolmizationInput = None,
         gamut: GamutInput = None,
     ) -> tuple[list[Pitch], GamutGraph]:
-        if isinstance(input, music21.stream.Stream):
+        if isinstance(input, Stream):
             raise ValueError("Use StreamSolmation for stream inputs")
 
         # Case two: an iterable of pitches, notes, or strings
         elif isinstance(input, Iterable):
             if gamut is None:
                 raise ValueError("Please provide a gamut")
-            if isinstance(input[0], music21.pitch.Pitch):
+            if isinstance(input[0], Pitch):
                 pitches = [Pitch(p) for p in input]
-            elif isinstance(input[0], music21.note.Note):
+            elif isinstance(input[0], Note):
                 pitches = [Pitch(n.pitch) for n in input]
             elif isinstance(input[0], str):
-                pitches = [music21.pitch.Pitch(p) for p in input]
+                pitches = [Pitch(p) for p in input]
             else:
                 raise ValueError(
                     "Unsupported input type: you can pass an iterable of pitches, notes or pitch strings"
@@ -187,13 +189,13 @@ class Solmization:
         """Show a stream of the the gap-filled melody."""
         notes = []
         for pitch, isOrig in zip(self.steps, self.is_original):
-            note = music21.note.Note(pitch)
+            note = Note(pitch)
             if not isOrig:
                 note.notehead = "diamond"
                 note.style.color = "#999999"
             note.stemDirection = "noStem"
             notes.append(note)
-        stream = music21.stream.Stream(notes)
+        stream = Stream(notes)
         return stream.show(**kwargs)
 
     def draw_parse(self, **kwargs):
@@ -204,7 +206,7 @@ class Solmization:
 class StreamSolmization(Solmization):
     def __init__(
         self,
-        stream: music21.stream.Stream,
+        stream: Stream,
         style: str = "continental",
         gamut: GamutInput = None,
         in_place: bool = True,
@@ -327,7 +329,7 @@ class StreamSolmization(Solmization):
                 and len(segment_notes) > 1
                 and (show_all_segments or len(segment["paths"]) > 1)
             ):
-                line = music21.spanner.Line(segment_notes)
+                line = Line(segment_notes)
                 line.lineType = "dotted"
                 self.stream.insert(0, line)
 
@@ -346,8 +348,8 @@ def solmize(
 ) -> Solmization:
     """A convenience function that creates a Solmization object depending on the input type."""
     if to_stream:
-        input = music21.stream.Stream(input)
-    if isinstance(input, music21.stream.Stream):
+        input = Stream(input)
+    if isinstance(input, Stream):
         solmization = StreamSolmization(input, style=style, gamut=gamut, **kwargs)
     else:
         solmization = Solmization(input, gamut=gamut, **kwargs)

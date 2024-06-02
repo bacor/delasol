@@ -1,8 +1,14 @@
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------
+# Author: Bas Cornelissen
+# Copyright © 2024 Bas Cornelissen
+# -------------------------------------------------------------------
 import unittest
 from music21.pitch import Pitch
-from hexachord.utils import segment_deviations
-from hexachord.gamut_graph import HardContinentalGamut, HexachordGraph
-from hexachord.parse_graph import ParseGraph
+
+# Local imports
+from solmization.gamut_graph import HardContinentalGamut, HexachordGraph
+from solmization.parse_graph import ParseGraph
 
 
 def hexachord_match_fn(node, target):

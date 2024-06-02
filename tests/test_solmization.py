@@ -1,9 +1,19 @@
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------
+# Author: Bas Cornelissen
+# Copyright © 2024 Bas Cornelissen
+# -------------------------------------------------------------------
 import unittest
+import os
 from music21 import converter
 from music21.pitch import Pitch
 from music21.note import Note
-from hexachord.gamut_graph import HardContinentalGamut
-from hexachord.solmization import Solmization, StreamSolmization
+
+# Local imports
+from solmization.gamut_graph import HardContinentalGamut
+from solmization.solmization import Solmization, StreamSolmization
+
+CUR_DIR = os.path.dirname(__file__)
 
 
 class TestSolmization(unittest.TestCase):
@@ -56,7 +66,7 @@ class TestSolmization(unittest.TestCase):
             self.assertEqual(target, segment["syllables"][0])
 
     def test_ties(self):
-        score = converter.parse("scores/issues/issue-ties.mxl")
+        score = converter.parse(f"{CUR_DIR}/scores/issue-ties.mxl")
         solmization = StreamSolmization(score)
         evaluation = solmization.evaluate(target_lyrics=2)
         self.assertEqual(evaluation["correct"], 5)

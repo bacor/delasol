@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------
+# Author: Bas Cornelissen
+# Copyright © 2024 Bas Cornelissen
+# -------------------------------------------------------------------
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -5,6 +10,8 @@ from typing import Union, Iterable, Optional
 from music21.pitch import Pitch
 from music21.scale import ConcreteScale, Direction
 from music21.key import KeySignature
+
+# Local imports
 from .utils import SUBSCRIPTS, draw_graph, as_pitch
 
 # Number all possible hexachords within some bounds (in practice we only need 0-6)

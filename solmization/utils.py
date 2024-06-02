@@ -1,8 +1,12 @@
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------
+# Author: Bas Cornelissen
+# Copyright © 2024 Bas Cornelissen
+# -------------------------------------------------------------------
 import music21
 import networkx as nx
 import numpy as np
 import matplotlib.cm as cm
-import matplotlib.pyplot as plt
 
 SUBSCRIPTS = "₀₁₂₃₄₅₆₇₈₉"
 

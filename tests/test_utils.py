@@ -1,5 +1,12 @@
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------
+# Author: Bas Cornelissen
+# Copyright © 2024 Bas Cornelissen
+# -------------------------------------------------------------------
 import unittest
-from hexachord.utils import segment_deviations
+
+# Local imports
+from solmization.utils import segment_deviations
 
 
 class TestSegmentation(unittest.TestCase):
