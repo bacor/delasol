@@ -70,8 +70,13 @@ def evaluator(syllable: str, target: str) -> str:
     """
     Evaluate a note based on the target lyrics.
     """
-    if target is not None and "*" in target:
-        target = target.split("*")[1]
+    if target is not None:
+        if target.startswith("["):
+            target = target.replace("[", "").replace("]", "")
+        elif target.startswith("("):
+            target = target.replace("(", "").replace(")", "")
+        if "*" in target:
+            target = target.split("*")[1]
 
     if target == syllable:
         return "correct"
@@ -253,10 +258,15 @@ class StreamSolmization(Solmization):
             lyrics = {lyric.number: lyric for lyric in note.lyrics}
             if target is None and target_number in lyrics:
                 target = lyrics[target_number].text
+                if target.startswith("["):
+                    target = target.replace("[", "").replace("]", "")
+                elif target.startswith("("):
+                    target = target.replace("(", "").replace(")", "")
+
                 if "*" in target:
                     target = target.split("*")[1]
                     lyrics[target_number].style.color = "red"
-                elif target == "?":
+                if target == "?":
                     lyrics[target_number].style.color = "red"
                 else:
                     lyrics[target_number].style.color = "black"
