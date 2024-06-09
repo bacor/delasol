@@ -414,6 +414,34 @@ class SoftContinentalGamut(GamutGraph):
         super().__init__(hexachords=hexachords, mutations=mutations)
 
 
+class HardEnglishGamut(GamutGraph):
+    def __init__(
+        self,
+        hexachords=None,
+        mutations=ENGLISH_MUTATIONS,
+        mutation_weight=0.75,
+        hexachord_kws={},
+    ):
+        kws = dict(
+            fa_super_la=False,
+            loop_weight=0.5,
+            step_weight=1,
+            fa_super_la_weight=1,
+        )
+        kws.update(**hexachord_kws)
+        if hexachords is None:
+            hexachords = [
+                HexachordGraph("G2", **kws),
+                HexachordGraph("C3", **kws),
+                HexachordGraph("G3", **kws),
+                HexachordGraph("C4", **kws),
+                HexachordGraph("G4", **kws),
+            ]
+        super().__init__(
+            hexachords=hexachords, mutations=mutations, mutation_weight=mutation_weight
+        )
+
+
 class SoftEnglishGamut(GamutGraph):
     def __init__(
         self,
@@ -444,6 +472,7 @@ class SoftEnglishGamut(GamutGraph):
 GAMUTS = {
     "hard-continental": HardContinentalGamut,
     "soft-continental": SoftContinentalGamut,
+    "hard-english": HardEnglishGamut,
     "soft-english": SoftEnglishGamut,
 }
 
@@ -453,6 +482,7 @@ SHARPS_TO_GAMUT_NAME = {
         -1: "soft-continental",
     },
     "english": {
+        0: "hard-english",
         -1: "soft-english",
     },
 }
