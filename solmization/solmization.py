@@ -13,7 +13,7 @@ from music21.pitch import Pitch
 from music21.note import Note
 
 # Local imports
-from .parse_graph import ParseGraph
+from .parse_graph import GamutParseGraph
 from .gamut_graph import GamutGraph, get_gamut
 from .utils import set_lyrics_color, SUBSCRIPTS
 
@@ -24,7 +24,6 @@ def fmt_syllable(syllable, hex):
 
 
 def _extract_from_path_segments(segments, isOriginal):
-    isOriginal = [False] + isOriginal + [False]
     newSegments = []
     origPos = 0
     for segment in segments:
@@ -100,23 +99,25 @@ class Solmization:
         self,
         input: SolmizationInput = None,
         gamut: GamutInput = None,
+        gamut_kws: dict = {},
         **kwargs,
     ):
+        if isinstance(gamut, str):
+            gamut = get_gamut(gamut, **gamut_kws)
+        if not isinstance(gamut, GamutGraph):
+            raise ValueError("No gamut was specified.")
+        self.gamut = gamut
         if input:
-            self.solmize(input, gamut, **kwargs)
+            self.solmize(input, **kwargs)
 
     def _validate_input(
         self,
         input: SolmizationInput = None,
-        gamut: GamutInput = None,
-    ) -> tuple[list[Pitch], GamutGraph]:
+    ) -> list[Pitch]:
+        """Extract a sequence of pitches from the input."""
         if isinstance(input, Stream):
             raise ValueError("Use StreamSolmation for stream inputs")
-
-        # Case two: an iterable of pitches, notes, or strings
         elif isinstance(input, Iterable):
-            if gamut is None:
-                raise ValueError("Please provide a gamut")
             if isinstance(input[0], Pitch):
                 pitches = [Pitch(p) for p in input]
             elif isinstance(input[0], Note):
@@ -127,27 +128,34 @@ class Solmization:
                 raise ValueError(
                     "Unsupported input type: you can pass an iterable of pitches, notes or pitch strings"
                 )
+        return pitches
 
-        if isinstance(gamut, str):
-            gamut = get_gamut(gamut)
-
-        if not isinstance(gamut, GamutGraph):
-            raise ValueError("No gamut was specified.")
-
-        return pitches, gamut
-
-    def solmize(self, input: SolmizationInput, gamut: GamutInput = None, **kwargs):
-        # Gap-fill the melody and build a solmization graph (steps=gap filled, pitches=originals)
-        self.pitches, self.gamut = self._validate_input(input, gamut)
-        self.steps, self.is_original = self.gamut.fill_gaps(self.pitches)
-        self.parse = ParseGraph(self.gamut, self.steps, **kwargs)
-        self.step_segments = self.parse.path_segments()
-        self.pitch_segments = _extract_from_path_segments(
-            self.step_segments, self.is_original
+    def solmize(
+        self,
+        input: SolmizationInput,
+        mismatch_penalty: float = 2,
+        prune_parse: bool = True,
+        parse_graph_kws: dict = {},
+    ):
+        self.pitches = self._validate_input(input)
+        self.parse = GamutParseGraph(
+            self.gamut,
+            self.pitches,
+            mismatch_penalty=mismatch_penalty,
+            prune=prune_parse,
+            **parse_graph_kws,
         )
 
+        # TODO this is a bit hacky; it is essentially superflous
+        is_original = [False] * len(self.parse)
+        for pos in self.parse.input_positions:
+            is_original[pos] = True
+
+        full_segments = self.parse.path_segments()
+        self.segments = _extract_from_path_segments(full_segments, is_original)
+
     def iter_segments(self):
-        for segment in self.pitch_segments:
+        for segment in self.segments:
             output = dict(**segment)
             output["syllables"] = []
             output["raw_syllables"] = []
@@ -189,19 +197,6 @@ class Solmization:
             return dict(Counter(evaluation))
         else:
             return evaluation
-
-    def show_steps(self, **kwargs):
-        """Show a stream of the the gap-filled melody."""
-        notes = []
-        for pitch, isOrig in zip(self.steps, self.is_original):
-            note = Note(pitch)
-            if not isOrig:
-                note.notehead = "diamond"
-                note.style.color = "#999999"
-            note.stemDirection = "noStem"
-            notes.append(note)
-        stream = Stream(notes)
-        return stream.show(**kwargs)
 
     def draw_parse(self, **kwargs):
         """Draw the parse graph"""
@@ -302,7 +297,12 @@ class StreamSolmization(Solmization):
         notes = self.stream.flat.notes
 
         if lyric_offset is None:
-            lyric_offset = max([max([l.number for l in n.lyrics]) for n in notes]) + 1
+            try:
+                lyric_offset = (
+                    max([max([l.number for l in n.lyrics]) for n in notes]) + 1
+                )
+            except ValueError:
+                lyric_offset = 0
 
         for segment in self.iter_segments():
             start, end = segment["start"], segment["end"]
@@ -353,14 +353,46 @@ def solmize(
     input,
     style: str = None,
     gamut: GamutInput = None,
-    to_stream: bool = False,
-    **kwargs,
+    diatonic: bool = None,
+    prune_parse: bool = True,
+    mismatch_penalty: float = None,
+    mutation_weight: float = None,
+    loop_weight: float = None,
+    fa_super_la: bool = None,
+    fa_super_la_weight: float = None,
+    step_weight: float = None,
+    weights=None,
 ) -> Solmization:
     """A convenience function that creates a Solmization object depending on the input type."""
-    if to_stream:
-        input = Stream(input)
+    opts = {}
+
+    gamut_kws = {}
+    if mutation_weight is not None:
+        gamut_kws["mutation_weight"] = mutation_weight
+    if diatonic is not None:
+        gamut_kws["diatonic"] = diatonic
+    opts["gamut_kws"] = gamut_kws
+
+    hex_kws = {}
+    if loop_weight is not None:
+        hex_kws["loop_weight"] = loop_weight
+    if fa_super_la is not None:
+        hex_kws["fa_super_la"] = fa_super_la
+    if fa_super_la_weight is not None:
+        hex_kws["fa_super_la_weight"] = fa_super_la_weight
+    if step_weight is not None:
+        hex_kws["step_weight"] = step_weight
+    if weights is not None:
+        hex_kws["weights"] = weights
+    opts["gamut_kws"]["hexachord_kws"] = hex_kws
+
+    if mismatch_penalty is not None:
+        opts["mismatch_penalty"] = mismatch_penalty
+    if prune_parse is not None:
+        opts["prune_parse"] = prune_parse
+
     if isinstance(input, Stream):
-        solmization = StreamSolmization(input, style=style, gamut=gamut, **kwargs)
+        solmization = StreamSolmization(input, style=style, gamut=gamut, **opts)
     else:
-        solmization = Solmization(input, gamut=gamut, **kwargs)
+        solmization = Solmization(input, gamut=gamut, **opts)
     return solmization

@@ -102,78 +102,12 @@ class TestGamutGraph(unittest.TestCase):
         self.assertTrue((G.names["fa1"], G.names["re2"]) in G.edges)
         self.assertTrue((G.names["fa2"], G.names["la1"]) in G.edges)
 
-    def test_spine(self):
-        H1 = HexachordGraph("G2")
-        H2 = HexachordGraph("C3")
-        G = GamutGraph(hexachords=[H1, H2], mutations=CONTINENTAL_MUTATIONS)
-        spine = "ut1 re1 mi1 fa1 re2 mi2 fa2 sol2 la2 fi2".split(" ")
-        spine = [G.names[name] for name in spine]
-        self.assertListEqual(G.spine, spine)
-
-    def test_spine_disconnected_graph(self):
-        H1 = HexachordGraph("G2")
-        H2 = HexachordGraph("C3")
-        G = GamutGraph(hexachords=[H1, H2])
-        self.assertRaises(Exception, lambda: G.spine)
-
     def test_pitches(self):
         H1 = HexachordGraph("G2")
         H2 = HexachordGraph("C3")
         G = GamutGraph(hexachords=[H1, H2])
         targets = [(1, Pitch("C3")), (2, Pitch("C3"))]
         self.assertListEqual(G.pitches[Pitch("C3")], targets)
-
-    def test_fill_gap(self):
-        [H1, H2, H4] = [HexachordGraph(p) for p in "G2 C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H1, H2, H4], mutations=CONTINENTAL_MUTATIONS)
-        filled = G.fill_gap(Pitch("C3"), Pitch("G3"))
-        expected = [Pitch("C3"), Pitch("D3"), Pitch("E3"), Pitch("F3")]
-        self.assertListEqual(filled, expected)
-
-    def test_fill_gap_down(self):
-        [H1, H2, H4] = [HexachordGraph(p) for p in "G2 C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H1, H2, H4], mutations=CONTINENTAL_MUTATIONS)
-        filled = G.fill_gap(Pitch("G3"), Pitch("E3"))
-        expected = [Pitch("G3"), Pitch("F3")]
-        self.assertListEqual(filled, expected)
-
-    def test_fill_gap_flats(self):
-        [H2, H4] = [HexachordGraph(p) for p in "C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H2, H4], mutations=CONTINENTAL_MUTATIONS)
-        filled = G.fill_gap(Pitch("G3"), Pitch("B-3"))
-        expected = [Pitch("G3"), Pitch("A3")]
-        self.assertListEqual(filled, expected)
-
-    def test_fill_gaps(self):
-        [H2, H4] = [HexachordGraph(p) for p in "C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H2, H4], mutations=CONTINENTAL_MUTATIONS)
-        melody = [Pitch(p) for p in "C3 G3 D4".split(" ")]
-        filled, is_original = G.fill_gaps(melody)
-        expected = [Pitch(p) for p in "C3 D3 E3 F3 G3 A3 B3 C4 D4".split(" ")]
-        self.assertListEqual(expected, filled)
-
-        reconstruction = [filled[i] for i, is_orig in enumerate(is_original) if is_orig]
-        self.assertListEqual(reconstruction, melody)
-
-    def test_fill_gaps_repetitions(self):
-        [H2, H4] = [HexachordGraph(p) for p in "C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H2, H4], mutations=CONTINENTAL_MUTATIONS)
-        melody = [Pitch(p) for p in "C3 E3 E3 E3 G3".split(" ")]
-        filled, is_original = G.fill_gaps(melody)
-        expected = [Pitch(p) for p in "C3 D3 E3 E3 E3 F3 G3".split(" ")]
-        self.assertListEqual(filled, expected)
-        reconstruction = [filled[i] for i, is_orig in enumerate(is_original) if is_orig]
-        self.assertListEqual(reconstruction, melody)
-
-    def test_fill_gaps_jumpy(self):
-        [H2, H4] = [HexachordGraph(p) for p in "C3 G3".split(" ")]
-        G = GamutGraph(hexachords=[H2, H4], mutations=CONTINENTAL_MUTATIONS)
-        melody = [Pitch(p) for p in "C3 G3 E3 C4 B3 B3".split(" ")]
-        filled, is_original = G.fill_gaps(melody)
-        expected = [
-            Pitch(p) for p in "C3 D3 E3 F3 G3 F3 E3 F3 G3 A3 B3 C4 B3 B3".split(" ")
-        ]
-        self.assertListEqual(expected, filled)
 
 
 class TestHardContinentalGamut(unittest.TestCase):
@@ -193,10 +127,3 @@ class TestSoftContinentalGamut(unittest.TestCase):
         self.assertEqual(gamut.hexachords[3].tonic, Pitch("F3"))
         self.assertEqual(gamut.hexachords[5].tonic, Pitch("C4"))
         self.assertEqual(gamut.hexachords[6].tonic, Pitch("F4"))
-
-    def test_issue1(self):
-        melody = ["D3", "F3", "F3", "G3", "A3", "B-3", "B-3", "A3", "F3", "G3"]
-        pitches = [Pitch(p) for p in melody]
-        gamut = SoftContinentalGamut()
-        filled, original = gamut.fill_gaps(pitches)
-        self.assertTrue(True)

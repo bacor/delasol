@@ -14,6 +14,10 @@ from music21.key import KeySignature
 # Local imports
 from .utils import SUBSCRIPTS, draw_graph, as_pitch
 
+# Custom types
+HexachordGraphNode = Pitch
+GamutGraphNode = tuple[int, Pitch]
+
 # Number all possible hexachords within some bounds (in practice we only need 0-6)
 _hexachordTonicsScale = ConcreteScale(pitches=["F2", "G2", "C3"])
 HEXACHORD_TONICS = {}
@@ -29,85 +33,7 @@ HEXACHORD_TYPES = dict(C="natural", F="soft", G="hard")
 HEXACHORD_SYLLABLES = ["ut", "re", "mi", "fa", "sol", "la", "fa"]
 HEXACHORD_UNIQUE_SYLLABLES = ["ut", "re", "mi", "fa", "sol", "la", "fi"]
 
-HexachordGraphNode = Pitch
-
-
-class HexachordGraph(nx.DiGraph):
-
-    def __init__(self, tonic: Union[str, Pitch], fa_super_la: bool = True, **kwargs):
-        super().__init__()
-        self._names = None
-
-        # Tonic, number and type
-        self.tonic = as_pitch(tonic)
-        if self.tonic not in HEXACHORD_TONICS:
-            raise ValueError("Invalid tonic: must be a C, F, or G")
-        self.number = HEXACHORD_TONICS.get(self.tonic, None)
-        self.type = HEXACHORD_TYPES.get(self.tonic.name, "nonstandard")
-
-        # Build the graph
-        intervals = ["M2", "M2", "m2", "M2", "M2"]
-        if fa_super_la:
-            intervals.append("m2")
-        self.pitches = [self.tonic]
-        for interval in intervals:
-            self.pitches.append(self.pitches[-1].transpose(interval))
-        self.build(**kwargs)
-
-    def __repr__(self):
-        return f"<HexachordGraph {self.number} on {self.tonic.nameWithOctave}>"
-
-    @property
-    def names(self):
-        if self._names is None:
-            self._names = {self.nodes[node]["name"]: node for node in self.nodes}
-        return self._names
-
-    def build(
-        self,
-        step_weight: float = 1,
-        loop_weight: float = 0.5,
-        fa_super_la_weight: float = 1.5,
-        weights: np.ndarray = None,
-    ):
-        if weights is None:
-            N = len(self.pitches)
-            weights = np.eye(N) * loop_weight
-            np.fill_diagonal(weights[1:], step_weight)
-            np.fill_diagonal(weights.T[1:], step_weight)
-            weights[N - 1, N - 2] = fa_super_la_weight
-            weights[N - 2, N - 1] = fa_super_la_weight
-
-        for i, pitch in enumerate(self.pitches):
-            syllable = HEXACHORD_SYLLABLES[i]
-            uniq = HEXACHORD_UNIQUE_SYLLABLES[i]
-            name = f"{uniq}{self.number}"
-            self.add_node(
-                pitch,
-                degree=i + 1,
-                syllable=syllable,
-                name=name,
-                long_label=f"{pitch.unicodeNameWithOctave} {uniq}{SUBSCRIPTS[self.number]}",
-                label=f"{uniq}{SUBSCRIPTS[self.number]}",
-                position=(pitch.ps, 0),
-            )
-
-        for i, pitch1 in enumerate(self.pitches):
-            for j, pitch2 in enumerate(self.pitches):
-                if weights[i, j] > 0:
-                    self.add_edge(pitch1, pitch2, weight=weights[i, j])
-
-    def solmize(self, node: HexachordGraphNode) -> str:
-        self.nodes[node]["syllable"]
-
-    def draw(self, show_loops=True, fig=None, **kws):
-        if fig is None:
-            plt.figure(figsize=(len(self), 1))
-        draw_graph(self, show_loops=show_loops, **kws)
-        plt.axis("off")
-        plt.ylim(-0.5, 0.5)
-
-
+# Mutations
 CONTINENTAL_MUTATIONS = {
     "natural": {
         "up": {
@@ -166,7 +92,86 @@ ENGLISH_MUTATIONS = {
     },
 }
 
-GamutGraphNode = tuple[int, Pitch]
+
+class HexachordGraph(nx.DiGraph):
+
+    def __init__(
+        self,
+        tonic: Union[str, Pitch],
+        fa_super_la: bool = True,
+        **kwargs,
+    ):
+        super().__init__()
+        self._names = None
+
+        # Tonic, number and type
+        self.tonic = as_pitch(tonic)
+        if self.tonic not in HEXACHORD_TONICS:
+            raise ValueError("Invalid tonic: must be a C, F, or G")
+        self.number = HEXACHORD_TONICS.get(self.tonic, None)
+        self.type = HEXACHORD_TYPES.get(self.tonic.name, "nonstandard")
+
+        # Build the graph
+        intervals = ["M2", "M2", "m2", "M2", "M2"]
+        if fa_super_la:
+            intervals.append("m2")
+        self.pitches = [self.tonic]
+        for interval in intervals:
+            self.pitches.append(self.pitches[-1].transpose(interval))
+        self.build(**kwargs)
+
+    def __repr__(self):
+        return f"<HexachordGraph {self.number} on {self.tonic.nameWithOctave}>"
+
+    @property
+    def names(self):
+        if self._names is None:
+            self._names = {self.nodes[node]["name"]: node for node in self.nodes}
+        return self._names
+
+    def build(
+        self,
+        step_weight: float = 1,
+        loop_weight: float = 0.5,
+        fa_super_la_weight: float = 1.5,
+        weights: np.ndarray = None,
+    ):
+        if weights is None:
+            N = len(self.pitches)
+            weights = np.eye(N) * loop_weight
+            np.fill_diagonal(weights[1:], step_weight)
+            np.fill_diagonal(weights.T[1:], step_weight)
+            weights[N - 1, N - 2] = fa_super_la_weight
+            weights[N - 2, N - 1] = fa_super_la_weight
+
+        for i, pitch in enumerate(self.pitches):
+            syllable = HEXACHORD_SYLLABLES[i]
+            uniq = HEXACHORD_UNIQUE_SYLLABLES[i]
+            name = f"{uniq}{self.number}"
+            self.add_node(
+                pitch,
+                degree=i + 1,
+                syllable=syllable,
+                name=name,
+                long_label=f"{pitch.unicodeNameWithOctave} {uniq}{SUBSCRIPTS[self.number]}",
+                label=f"{uniq}{SUBSCRIPTS[self.number]}",
+                position=(pitch.diatonicNoteNum, 0),
+            )
+
+        for i, pitch1 in enumerate(self.pitches):
+            for j, pitch2 in enumerate(self.pitches):
+                if weights[i, j] > 0:
+                    self.add_edge(pitch1, pitch2, weight=weights[i, j])
+
+    def solmize(self, node: HexachordGraphNode) -> str:
+        self.nodes[node]["syllable"]
+
+    def draw(self, show_loops=True, fig=None, **kws):
+        if fig is None:
+            plt.figure(figsize=(len(self), 1))
+        draw_graph(self, show_loops=show_loops, **kws)
+        plt.axis("off")
+        plt.ylim(-0.5, 0.5)
 
 
 class GamutGraph(nx.DiGraph):
@@ -179,10 +184,8 @@ class GamutGraph(nx.DiGraph):
         super().__init__()
         self.hexachords = {}
         self._names = None
-        self._spine = None
         self._overlapping_hexachords = None
         self._pitches = None
-        self._spine_pitches = None
 
         if hexachords is not None:
             for hexachord in hexachords:
@@ -233,23 +236,6 @@ class GamutGraph(nx.DiGraph):
             self._overlapping_hexachords = neighbors
         return self._overlapping_hexachords
 
-    @property
-    def spine(self) -> list[GamutGraphNode]:
-        if self._spine is None:
-            try:
-                self._spine = nx.shortest_path(self, self.lowest, self.highest)
-            except nx.NetworkXNoPath:
-                raise Exception(
-                    "The gamut graph is not connected, and so there is no spine running from the lowest to the highest note in the gamut."
-                )
-        return self._spine
-
-    @property
-    def spine_pitches(self) -> dict[Pitch, GamutGraphNode]:
-        if self._spine_pitches is None:
-            self._spine_pitches = {node[1]: node for node in self.spine}
-        return self._spine_pitches
-
     def add_hexachord(self, hexachord: HexachordGraph):
         num = hexachord.number
         if num in self.hexachords:
@@ -257,7 +243,7 @@ class GamutGraph(nx.DiGraph):
         self.hexachords[num] = hexachord
         for node in hexachord.nodes:
             attrs = dict(**hexachord.nodes[node])
-            attrs["position"] = (attrs["position"][0], num)
+            attrs["position"] = (node.ps, num)
             self.add_node((num, node), **attrs)
         weights = nx.get_edge_attributes(hexachord, "weight")
         weighted_edges = [
@@ -293,69 +279,11 @@ class GamutGraph(nx.DiGraph):
             edge_weight = weight if len(edge) == 2 else edge[2]
             self.add_edge(self.names[edge[0]], self.names[edge[1]], weight=edge_weight)
 
-    def fill_gap(self, source_pitch: Pitch, target_pitch: Pitch) -> list[Pitch]:
-        """Fill the gap between two nodes by traversing the spine of the graph. Note that the
-        returned filler will not include the target pitch."""
-        if not source_pitch in self.pitches or not target_pitch in self.pitches:
-
-            # Crucial assumption: ignore accidentals!
-            if source_pitch.accidental is not None:
-                source_pitch = Pitch(source_pitch.nameWithOctave)
-                source_pitch.accidental = None
-            if target_pitch.accidental is not None:
-                target_pitch = Pitch(target_pitch.nameWithOctave)
-                target_pitch.accidental = None
-            if not source_pitch in self.pitches or not target_pitch in self.pitches:
-                raise ValueError(
-                    "Source and target pitches are not in the gamut, even when ignoring accidentals."
-                )
-        if source_pitch == target_pitch:
-            return [source_pitch]
-
-        # If the pitches are in the spine, we can just return a section of the spine
-        spine, spine_pitches = self.spine, self.spine_pitches
-        if source_pitch in spine_pitches and target_pitch in spine_pitches:
-            source = spine_pitches[source_pitch]
-            target = spine_pitches[target_pitch]
-            start = spine.index(source)
-            end = spine.index(target)
-            step = 1 if start < end else -1
-            return [spine[i][1] for i in range(start, end, step)]
-
-        # Otherwise, we need to find the shortest path between the two pitches
-        # TO DO memoize?
-        else:
-            paths = []
-            for source in self.pitches[source_pitch]:
-                for target in self.pitches[target_pitch]:
-                    try:
-                        path = nx.shortest_path(self, source, target)
-                        paths.append(path)
-                    except nx.NetworkXNoPath:
-                        continue
-            weights = [nx.path_weight(self, path, "weight") for path in paths]
-            ranking = np.argsort(weights)
-            best = paths[ranking[0]]
-            return [node[1] for node in best][:-1]
-
-    def fill_gaps(self, pitches: list[Pitch]) -> tuple[list[Pitch], list[bool]]:
-        """Fill all gaps in a sequence of pitches"""
-        filled = []
-        is_original = []
-        for p1, p2 in zip(pitches, pitches[1:]):
-            filler = self.fill_gap(p1, p2)
-            filled.extend(filler)
-            is_original.append(True)
-            is_original.extend([False] * (len(filler) - 1))
-        filled.append(pitches[-1])
-        is_original.append(True)
-        return filled, is_original
-
     def solmize(self, node: GamutGraphNode):
         """Return the solmization of a pitch in the gamut graph"""
         return self.nodes[node]["syllable"]
 
-    def draw(self, show_axes: bool = True, fig=None, **kws):
+    def draw(self, show_axes: bool = True, fig=None, diatonic: bool = True, **kws):
         if fig is None:
             plt.figure(figsize=(len(self) * 0.4, len(self.hexachords)))
         draw_graph(self, **kws)
@@ -366,12 +294,25 @@ class GamutGraph(nx.DiGraph):
             ax.set_axis_on()
             ax.xaxis.grid(color=".9")
             ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-            ticks = [p.ps for p in self.pitches.keys()]
-            ticklabels = [p.unicodeNameWithOctave for p in self.pitches.keys()]
-            ax.set_xticks([p.ps for p in self.pitches.keys()])
+            if diatonic:
+                ticks, ticklabels = [], []
+                for p in self.pitches.keys():
+                    ticks.append(p)
+                    nodes = self.pitches[p]
+                    parts = set([node[1].unicodeNameWithOctave for node in nodes])
+                    ticklabels.append("/".join(parts))
+                    # pitch = self.pitches[p][0][1]
+                    # if pitch.name == "C":
+                    #     ticklabels.append(f"{p} ({pitch.unicodeNameWithOctave})")
+                    # else:
+                    #     ticklabels.append(p)
+            else:
+                ticks = [p.ps for p in self.pitches.keys()]
+                ticklabels = [p.unicodeNameWithOctave for p in self.pitches.keys()]
+            ax.set_xticks(ticks)
             ax.set_xticklabels(ticklabels)
             plt.ylabel("hexachord number")
-            plt.xlim(self.lowest[1].ps - 1, self.highest[1].ps + 1)
+            # plt.xlim(self.lowest[1].ps - 1, self.highest[1].ps + 1)
         else:
             plt.axis("off")
 
@@ -382,6 +323,7 @@ class HardContinentalGamut(GamutGraph):
         hexachords: Optional[list[HexachordGraph]] = None,
         mutations: Optional[dict] = CONTINENTAL_MUTATIONS,
         hexachord_kws: Optional[dict] = {},
+        **kwargs,
     ):
         if hexachords is None:
             hexachords = [
@@ -391,7 +333,7 @@ class HardContinentalGamut(GamutGraph):
                 HexachordGraph("C4", **hexachord_kws),
                 HexachordGraph("G4", **hexachord_kws),
             ]
-        super().__init__(hexachords=hexachords, mutations=mutations)
+        super().__init__(hexachords=hexachords, mutations=mutations, **kwargs)
 
 
 class SoftContinentalGamut(GamutGraph):
@@ -401,6 +343,7 @@ class SoftContinentalGamut(GamutGraph):
         mutations: Optional[dict] = CONTINENTAL_MUTATIONS,
         extend_below: bool = True,
         hexachord_kws: Optional[dict] = {},
+        **kwargs,
     ):
         if hexachords is None:
             hexachords = [
@@ -411,7 +354,7 @@ class SoftContinentalGamut(GamutGraph):
             ]
         if extend_below:
             hexachords = [HexachordGraph("F2", **hexachord_kws)] + hexachords
-        super().__init__(hexachords=hexachords, mutations=mutations)
+        super().__init__(hexachords=hexachords, mutations=mutations, **kwargs)
 
 
 class HardEnglishGamut(GamutGraph):
@@ -421,6 +364,7 @@ class HardEnglishGamut(GamutGraph):
         mutations=ENGLISH_MUTATIONS,
         mutation_weight=0.75,
         hexachord_kws={},
+        **kwargs,
     ):
         kws = dict(
             fa_super_la=False,
@@ -438,7 +382,10 @@ class HardEnglishGamut(GamutGraph):
                 HexachordGraph("G4", **kws),
             ]
         super().__init__(
-            hexachords=hexachords, mutations=mutations, mutation_weight=mutation_weight
+            hexachords=hexachords,
+            mutations=mutations,
+            mutation_weight=mutation_weight,
+            **kwargs,
         )
 
 
@@ -449,6 +396,7 @@ class SoftEnglishGamut(GamutGraph):
         mutations=ENGLISH_MUTATIONS,
         mutation_weight=0.75,
         hexachord_kws={},
+        **kwargs,
     ):
         kws = dict(
             fa_super_la=False,
@@ -465,7 +413,10 @@ class SoftEnglishGamut(GamutGraph):
                 HexachordGraph("F4", **kws),
             ]
         super().__init__(
-            hexachords=hexachords, mutations=mutations, mutation_weight=mutation_weight
+            hexachords=hexachords,
+            mutations=mutations,
+            mutation_weight=mutation_weight,
+            **kwargs,
         )
 
 
