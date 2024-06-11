@@ -353,7 +353,6 @@ def solmize(
     input,
     style: str = None,
     gamut: GamutInput = None,
-    diatonic: bool = None,
     prune_parse: bool = True,
     mismatch_penalty: float = None,
     mutation_weight: float = None,
@@ -361,7 +360,7 @@ def solmize(
     fa_super_la: bool = None,
     fa_super_la_weight: float = None,
     step_weight: float = None,
-    weights=None,
+    hexachord_weights=None,
 ) -> Solmization:
     """A convenience function that creates a Solmization object depending on the input type."""
     opts = {}
@@ -369,8 +368,6 @@ def solmize(
     gamut_kws = {}
     if mutation_weight is not None:
         gamut_kws["mutation_weight"] = mutation_weight
-    if diatonic is not None:
-        gamut_kws["diatonic"] = diatonic
     opts["gamut_kws"] = gamut_kws
 
     hex_kws = {}
@@ -382,8 +379,8 @@ def solmize(
         hex_kws["fa_super_la_weight"] = fa_super_la_weight
     if step_weight is not None:
         hex_kws["step_weight"] = step_weight
-    if weights is not None:
-        hex_kws["weights"] = weights
+    if hexachord_weights is not None:
+        hex_kws["weights"] = hexachord_weights
     opts["gamut_kws"]["hexachord_kws"] = hex_kws
 
     if mismatch_penalty is not None:
