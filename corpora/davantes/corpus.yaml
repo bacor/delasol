@@ -1,0 +1,106 @@
+
+title: Davantes Paumes (1560)
+
+editor: Bas Cornelissen (b.j.m.cornelissen@uva.nl)
+
+license: CC BY-SA 4.0
+
+copyright: >
+  This work © 2024 by Bas Cornelissen is licensed under CC BY-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/4.0/
+
+source: >
+  Pierre Davantes. Psaumes de David, mis en rhyme Francoise par Clement Marot & Theodore de Besze. 1560
+  https://imslp.org/wiki/Pseaumes_de_David_(Davant%C3%A8s,_Pierre)
+
+comments: >
+  Directly based on my edition of Marot & de Beze. The (extremely rare) differences in solmization are indicated between square brackets, other differences are noted in comments. 
+
+# Technical specifications
+
+solmization_style: continental
+lyric_lines: 
+  - text
+  - syllables
+  - davantes_numbering
+
+# Contents
+
+works:
+  - id: D001
+    number: 1
+    title: Qui au conseil des malins n'a esté
+  - id: D002
+    number: 2
+    title: Pourquoy sont bruit et s'assemblent les gens?
+  - id: D003
+    number: 3
+    title: O Seigneur que de gens
+  - id: D004
+    number: 4
+    title: Quandie t'invoque, helas, escoute
+  - id: D005
+    number: 5
+    title: Aux paroles que je eux dire
+  - id: D006
+    number: 6
+    title: Ne veuilles pas, ô Sire
+  - id: D007
+    number: 7
+    title: Mon Dieu, j'ai en toi esperance
+  - id: D008
+    number: 8
+    title: O nostre Dieu et Seigneur amiable
+  - id: D009
+    number: 9
+    title: De tout mon coeur t'exalterai
+  - id: D010
+    number: 10
+    title: D'ou vient cela, Seigneur je te suppli'
+  - id: D011
+    number: 11
+    title: Veu que du tout en Dieu mon coeur s'appuie
+  - id: D012
+    number: 12
+    title: Donne secours, Seigneur, il en est heure
+  - id: D013
+    number: 13
+    title: Jusques à quand as establi
+  - id: D014
+    number: 14
+    title: Le fol malin en soun coeur dit et croit
+  - id: D015
+    number: 15
+    title: Qui est-ce qui conversera
+  # - id: MdB016
+  #   number: 16
+  #   title: Sois moi, Seigneur, ma garde et mon appui
+  # - id: MdB017
+  #   number: 17
+  #   title: Seigneur, enten à mon bon droict
+  # - id: MdB018
+  #   number: 18
+  #   title: Je t'aimerai en toute obeissance
+  # - id: MdB019
+  #   number: 19
+  #   title: Les cieux en chacun lieu
+  # - id: MdB020
+  #   number: 20
+  #   title: Le Seigneur ta prière entende
+  # - id: MdB021
+  #   number: 21
+  #   title: Seigneur, le Roi s'esjouira
+  # - id: MdB022
+  #   number: 22
+  #   title: Mon Dieu, mon Dieu, pourquoi m'as tu laissé
+  # - id: MdB023
+  #   number: 23
+  #   title: Mon Dieu me paist sous sa puissance haute
+  # - id: MdB024
+  #   number: 24
+  #   title: La terre au Seigneur appartient
+  # - id: MdB025
+  #   number: 25
+  #   title: A toi, mon Dieu, mon coeur monte
+  # - id: MdB037
+  #   number: 37
+  #   title: Ne sois fasché si durant ceste vie

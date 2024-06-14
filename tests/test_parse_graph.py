@@ -78,6 +78,14 @@ class TestGamutParseGraph(unittest.TestCase):
         paths = pg.shortest_paths(Pitch("D4"), Pitch("C#4"))
         self.assertEqual(len(paths), 2)
 
+    # def test_input_segments(self):
+    #     seq = [Pitch(p) for p in "C3 G3 C4 F3 A3".split(" ")]
+    #     gamut = get_gamut("hard-continental")
+    #     pg = GamutParseGraph(gamut, seq)
+    #     for step in pg.iter_best_path():
+    #         print(step)
+    #     print(pg)
+
     # TODO should work, but the order nof nodes may be randomized?
     # def test_b_flat_in_hard_hex(self):
     #     example = [Pitch(p) for p in "D4 A3 B-3 A3 G3 F3".split(" ")]

@@ -3,24 +3,67 @@
 # Author: Bas Cornelissen
 # Copyright © 2024 Bas Cornelissen
 # -------------------------------------------------------------------
-import music21
 import networkx as nx
 import numpy as np
 import matplotlib.cm as cm
+from collections.abc import Iterable
+from music21.pitch import Pitch
+from music21.stream import Stream
+from music21.note import Note
 
-SUBSCRIPTS = "₀₁₂₃₄₅₆₇₈₉"
 
-
-def as_stream(pitch_string: str, sep: str = " "):
-    pitches = [music21.pitch.Pitch(p) for p in pitch_string.split(sep)]
-    notes = [music21.note.Note(p) for p in pitches]
-    return music21.stream.Stream(notes)
+def as_stream(pitch_string: str, sep: str = " ") -> Stream:
+    pitches = [Pitch(p) for p in pitch_string.split(sep)]
+    notes = [Note(p) for p in pitches]
+    return Stream(notes)
 
 
 def as_pitch(pitch):
     if isinstance(pitch, str):
-        pitch = music21.pitch.Pitch(pitch)
+        pitch = Pitch(pitch)
     return pitch
+
+
+def extract_lyrics(notes: Iterable[Note], number: int) -> list[str]:
+    """Extract the lyrics at a given line number from an iterable of notes"""
+    extracted = []
+    for note in notes:
+        lyrics = {lyric.number: lyric for lyric in note.lyrics}
+        if number in lyrics:
+            extracted.append(lyrics[number].text)
+        else:
+            extracted.append(None)
+    return extracted
+
+
+def num_lyrics(stream: Stream) -> int:
+    """Returns the maximum number of lyrics in a stream"""
+    num_lyrics = 0
+    for note in stream.flat.notes:
+        numbers = [lyric.number for lyric in note.lyrics]
+        if len(numbers) > 0:
+            num_lyrics = max(max(numbers), num_lyrics)
+    return num_lyrics
+
+
+def annotate_note(
+    note: Note, text: str = None, color: str = None, number: int = 1
+) -> None:
+    """Add lyrics to a note and set its color"""
+    if text is not None:
+        note.addLyric(text, lyricNumber=number)
+    lyrics = {lyric.number: lyric for lyric in note.lyrics}
+    if color is not None:
+        if number in lyrics:
+            lyrics[number].style.color = color
+
+
+def set_lyrics_color(
+    notes: Iterable[Note], number: int, color: str = "#000000"
+) -> None:
+    """Set the color of a lyric in a list of notes."""
+    for note in notes:
+        annotate_note(note, color=color, number=number)
 
 
 def find_first_difference(sequence, value, offset: int = 0):
@@ -79,14 +122,6 @@ def segment_deviations(sequence, value):
                 start += end + 1
 
     return segments
-
-
-def set_lyrics_color(notes, lyric_num, color="#000000"):
-    """Set the color of a lyric in a list of notes."""
-    for note in notes:
-        lyrics = {lyric.number: lyric for lyric in note.lyrics}
-        if lyric_num in lyrics:
-            lyrics[lyric_num].style.color = color
 
 
 def draw_graph(

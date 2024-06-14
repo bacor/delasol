@@ -11,3 +11,11 @@ tmp/
 env/
 tbr
 playground/
+
+# Exclude output
+corpora/*/output
+# corpora/*/output/**
+# !corpora/*/output/latest/
+
+# Excluded corpora
+corpora/smith

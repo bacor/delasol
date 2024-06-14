@@ -12,7 +12,7 @@ from music21.scale import ConcreteScale, Direction
 from music21.key import KeySignature
 
 # Local imports
-from .utils import SUBSCRIPTS, draw_graph, as_pitch
+from .utils import draw_graph, as_pitch
 
 # Custom types
 HexachordGraphNode = Pitch
@@ -30,8 +30,7 @@ for i in range(-5, 20):
         pitch = _hexachordTonicsScale.tonic
     HEXACHORD_TONICS[pitch] = i
 HEXACHORD_TYPES = dict(C="natural", F="soft", G="hard")
-HEXACHORD_SYLLABLES = ["ut", "re", "mi", "fa", "sol", "la", "fa"]
-HEXACHORD_UNIQUE_SYLLABLES = ["ut", "re", "mi", "fa", "sol", "la", "fi"]
+STATE_NAMES = ["ut", "re", "mi", "fa", "sol", "la", "fi"]
 
 # Mutations
 CONTINENTAL_MUTATIONS = {
@@ -145,16 +144,10 @@ class HexachordGraph(nx.DiGraph):
             weights[N - 2, N - 1] = fa_super_la_weight
 
         for i, pitch in enumerate(self.pitches):
-            syllable = HEXACHORD_SYLLABLES[i]
-            uniq = HEXACHORD_UNIQUE_SYLLABLES[i]
-            name = f"{uniq}{self.number}"
             self.add_node(
                 pitch,
                 degree=i + 1,
-                syllable=syllable,
-                name=name,
-                long_label=f"{pitch.unicodeNameWithOctave} {uniq}{SUBSCRIPTS[self.number]}",
-                label=f"{uniq}{SUBSCRIPTS[self.number]}",
+                name=f"{STATE_NAMES[i]}{self.number}",
                 position=(pitch.diatonicNoteNum, 0),
             )
 

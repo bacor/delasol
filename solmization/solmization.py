@@ -3,7 +3,7 @@
 # Author: Bas Cornelissen
 # Copyright © 2024 Bas Cornelissen
 # -------------------------------------------------------------------
-from typing import Union, Callable
+from typing import Union, Callable, Any
 from collections.abc import Iterable
 from collections import Counter
 from copy import deepcopy
@@ -11,58 +11,18 @@ from music21.spanner import Line
 from music21.stream import Stream
 from music21.pitch import Pitch
 from music21.note import Note
+from music21.tie import Tie
+from music21.clef import Clef
 
 # Local imports
-from .parse_graph import GamutParseGraph
-from .gamut_graph import GamutGraph, get_gamut
-from .utils import set_lyrics_color, SUBSCRIPTS
-
-
-# TODO should be replaced
-def fmt_syllable(syllable, hex):
-    return f"{syllable}{SUBSCRIPTS[hex]}"
-
-
-def _extract_from_path_segments(segments, isOriginal):
-    newSegments = []
-    origPos = 0
-    for segment in segments:
-        isOrig = isOriginal[segment["start"] : segment["end"] + 1]
-        paths = []
-        weights = []
-        for i, path in enumerate(segment["paths"]):
-            origPath = []
-            for j in range(len(path)):
-                if isOrig[j]:
-                    origPath.append(path[j])
-
-            if len(origPath) > 0:
-                paths.append(origPath)
-                weights.append(segment["weights"][i])
-
-        if len(paths) > 0:
-            newSegments.append(
-                dict(
-                    start=origPos,
-                    end=origPos + len(paths[0]) - 1,
-                    paths=paths,
-                    weights=weights,
-                )
-            )
-            origPos += len(paths[0])
-
-    return newSegments
-
-
-def extract_lyrics(notes: Iterable[Note], lyric_num: int) -> list[str]:
-    extracted = []
-    for note in notes:
-        lyrics = {lyric.number: lyric for lyric in note.lyrics}
-        if lyric_num in lyrics:
-            extracted.append(lyrics[lyric_num].text)
-        else:
-            extracted.append(None)
-    return extracted
+from .parse_graph import GamutParseGraph, Segment
+from .gamut_graph import GamutGraph, get_gamut, GamutGraphNode, HexachordGraph
+from .utils import (
+    set_lyrics_color,
+    annotate_note,
+    num_lyrics,
+    extract_lyrics,
+)
 
 
 def evaluator(syllable: str, target: str) -> str:
@@ -89,8 +49,86 @@ def evaluator(syllable: str, target: str) -> str:
         return "incorrect"
 
 
+EVALUATION_STATUS = ["correct", "missing", "insertion", "deletion", "incorrect"]
+
+EVALUATION_COLORS = dict(
+    correct="green", missing="blue", insertion="red", deletion="red", incorrect="red"
+)
+
+
 SolmizationInput = Union[Iterable[Pitch], Iterable[Note], Iterable[str]]
 GamutInput = Union[GamutGraph, str]
+OutputStyle = Union[str, Iterable[str], Callable[[int, int, Pitch], str]]
+
+SUBSCRIPTS = "₀₁₂₃₄₅₆₇₈₉"
+SYLLABLES = ["ut", "re", "mi", "fa", "sol", "la", "fa"]
+STATE_NAMES = ["ut", "re", "mi", "fa", "sol", "la", "fi"]
+
+
+def format_syllable_subscript(degree: int, hexachord: HexachordGraph, **kwargs):
+    syllable = SYLLABLES[degree - 1]
+    subscript = SUBSCRIPTS[hexachord.number]
+    return f"{syllable}{subscript}"
+
+
+def format_state(degree: int, hexachord: HexachordGraph, **kwargs):
+    state = STATE_NAMES[degree - 1]
+    return f"{state}{hexachord.number}"
+
+
+def format_state_subscript(degree: int, hexachord: HexachordGraph, **kwargs):
+    name = STATE_NAMES[degree - 1]
+    subscript = SUBSCRIPTS[hexachord.number]
+    return f"{name}{subscript}"
+
+
+def by_degree(degree_names: list[str]) -> Callable[[Any], str]:
+    if not len(degree_names) == 7:
+        raise ValueError(
+            "You should pass exactly 7 names for the different degrees in a hexachord"
+        )
+
+    def func(degree: int, *args, **kwargs):
+        return degree_names[degree - 1]
+
+    return func
+
+
+def format_davantes(
+    hexachord: HexachordGraph,
+    pitch: Pitch,
+    note: Note = None,
+    solmization: Any = None,
+    **kwargs,
+) -> str:
+    clef = solmization.clef
+    num = pitch.diatonicNoteNum - clef.lowestLine + 2
+    dur = note.duration.quarterLength
+    if dur > 4:
+        dur = 4
+    marks = {
+        "soft": {2: ".", 4: "!"},
+        "hard": {2: ".", 4: "!"},
+        "natural": {2: "", 4: "'"},
+    }
+    mark = marks[hexachord.type][dur]
+    if hexachord.type == "soft":
+        symbol = f"{mark}{num}"
+    else:
+        symbol = f"{num}{mark}"
+    return symbol
+
+
+FORMATTERS = {
+    "syllable": by_degree(SYLLABLES),
+    "syllable-subscript": format_state_subscript,
+    "state": format_state,
+    "state-subscript": format_state_subscript,
+    "state-syllable": by_degree(["ut", "re", "mi", "fa", "sol", "la", "fi"]),
+    "do-ti": by_degree(["do", "re", "mi", "fa", "sol", "la", "ti"]),
+    "do-si": by_degree(["do", "re", "mi", "fa", "sol", "la", "si"]),
+    "davantes": format_davantes,
+}
 
 
 class Solmization:
@@ -99,22 +137,15 @@ class Solmization:
         self,
         input: SolmizationInput = None,
         gamut: GamutInput = None,
+        mismatch_penalty: float = 2,
+        prune_parse: bool = True,
         gamut_kws: dict = {},
-        **kwargs,
+        parse_graph_kws: dict = {},
     ):
         if isinstance(gamut, str):
             gamut = get_gamut(gamut, **gamut_kws)
         if not isinstance(gamut, GamutGraph):
             raise ValueError("No gamut was specified.")
-        self.gamut = gamut
-        if input:
-            self.solmize(input, **kwargs)
-
-    def _validate_input(
-        self,
-        input: SolmizationInput = None,
-    ) -> list[Pitch]:
-        """Extract a sequence of pitches from the input."""
         if isinstance(input, Stream):
             raise ValueError("Use StreamSolmation for stream inputs")
         elif isinstance(input, Iterable):
@@ -128,16 +159,12 @@ class Solmization:
                 raise ValueError(
                     "Unsupported input type: you can pass an iterable of pitches, notes or pitch strings"
                 )
-        return pitches
+        else:
+            raise ValueError("You must pass an input.")
 
-    def solmize(
-        self,
-        input: SolmizationInput,
-        mismatch_penalty: float = 2,
-        prune_parse: bool = True,
-        parse_graph_kws: dict = {},
-    ):
-        self.pitches = self._validate_input(input)
+        self._path = None
+        self.gamut = gamut
+        self.pitches = pitches
         self.parse = GamutParseGraph(
             self.gamut,
             self.pitches,
@@ -146,61 +173,93 @@ class Solmization:
             **parse_graph_kws,
         )
 
-        # TODO this is a bit hacky; it is essentially superflous
-        is_original = [False] * len(self.parse)
-        for pos in self.parse.input_positions:
-            is_original[pos] = True
+    @property
+    def path(self):
+        """Return the solmization path, defaults to the best solmization path."""
+        if self._path is None:
+            self.select("best")
+        return self._path
 
-        full_segments = self.parse.path_segments()
-        self.segments = _extract_from_path_segments(full_segments, is_original)
+    def select(
+        self, path: Union[str, Iterable[int], Callable[[int, Segment], int]] = "best"
+    ) -> None:
+        """Select a solmization path"""
+        if path == "best":
+            self._path = list(self.parse.iter_best_path(input_only=True))
+        elif path == "worst":
+            self._path = self.parse.iter_nth_path(
+                99,
+                input_only=True,
+            )
+        elif isinstance(path, Iterable) and isinstance(path[0], int):
+            path = lambda index, segment: path[index]
 
-    def iter_segments(self):
-        for segment in self.segments:
-            output = dict(**segment)
-            output["syllables"] = []
-            output["raw_syllables"] = []
-            for path in segment["paths"]:
-                path_sylls = []
-                path_raw_sylls = []
-                for _, (hex, pitch) in path:
-                    syll = self.gamut.solmize((hex, pitch))
-                    path_raw_sylls.append(syll)
-                    path_sylls.append(fmt_syllable(syll, hex))
-                output["syllables"].append(path_sylls)
-                output["raw_syllables"].append(path_raw_sylls)
-            yield output
+        if callable(path):
+            self._path = []
+            for node in self.parse.iter_selected_paths(
+                path,
+                input_only=True,
+            ):
+                self.path.append(node)
 
-    def iter_solmizations(self):
-        for segment in self.iter_segments():
-            for i, pos in enumerate(range(segment["start"], segment["end"] + 1)):
-                yield dict(
-                    pos=pos,
-                    nodes=[path[i] for path in segment["paths"]],
-                    raw_syllables=[sylls[i] for sylls in segment["raw_syllables"]],
-                    syllables=[sylls[i] for sylls in segment["syllables"]],
-                    weights=segment["weights"],
+    def match(
+        self, targets: Iterable[str], style: OutputStyle = "syllable"
+    ) -> list[GamutGraphNode]:
+        # TODO
+        raise NotImplemented()
+
+    def output(
+        self,
+        nodes: Iterable[GamutGraphNode] = None,
+        style: OutputStyle = "syllable",
+        **kwargs,
+    ) -> list[str]:
+        """Output labels for a given list of nodes."""
+        if nodes is None:
+            nodes = self.path
+        if callable(style):
+            formatter = style
+        elif style in FORMATTERS:
+            formatter = FORMATTERS[style]
+        elif isinstance(style, Iterable):
+            formatter = by_degree(style)
+        else:
+            raise ValueError(f"Invalid style input")
+
+        output = []
+        for hex, pitch in nodes:
+            degree = self.gamut.nodes[(hex, pitch)]["degree"]
+            output.append(
+                formatter(
+                    degree=degree,
+                    pitch=pitch,
+                    hexachord=self.gamut.hexachords[hex],
+                    solmization=self,
+                    **kwargs,
                 )
-
-    def best_syllables(self, subscript=True):
-        key = "syllables" if subscript else "raw_syllables"
-        return [data[key][0] for data in self.iter_solmizations()]
+            )
+        return output
 
     def evaluate(
         self,
         targets: Iterable[str],
+        predictions: Iterable[str] = None,
+        nodes: Iterable[GamutGraphNode] = None,
+        style: OutputStyle = None,
         return_counts: bool = True,
         evaluator: Callable[[str, str], str] = evaluator,
     ):
-        predictions = self.best_syllables(subscript=False)
+        if style is None:
+            style = "syllable"
+        if nodes is None:
+            nodes = self.path
+        if predictions is None:
+            predictions = self.output(nodes, style=style)
         evaluation = [evaluator(pred, targ) for pred, targ in zip(predictions, targets)]
         if return_counts:
             return dict(Counter(evaluation))
         else:
             return evaluation
-
-    def draw_parse(self, **kwargs):
-        """Draw the parse graph"""
-        return self.parse.draw(**kwargs)
 
 
 class StreamSolmization(Solmization):
@@ -213,7 +272,6 @@ class StreamSolmization(Solmization):
         **kwargs,
     ):
         self.stream = stream if in_place else deepcopy(stream)
-        self.stream.stripTies(inPlace=True)
         if self.stream.hasPartLikeStreams():
             if len(self.stream.parts) >= 2:
                 print(
@@ -221,132 +279,117 @@ class StreamSolmization(Solmization):
                 )
                 self.stream = self.stream.parts[0]
         self.style = style
+        self.clef = self.stream.flat.clef
         if gamut is None:
             key = self.stream.flat.keySignature
             gamut = get_gamut(style=self.style, key=key)
-        super().__init__(self.stream.flat.notes, gamut=gamut, **kwargs)
+        self.notes = [
+            note for note in self.stream.flat.notes if note.tie != Tie("stop")
+        ]
+        super().__init__(self.notes, gamut=gamut, **kwargs)
 
     def evaluate(
-        self, target_lyrics: int = None, targets: Iterable[str] = None, **kwargs
+        self,
+        target_lyrics: int = None,
+        targets: Iterable[str] = None,
+        style: OutputStyle = None,
+        **kwargs,
     ):
+        if style is None:
+            style = "syllable"
+        if "nodes" in kwargs:
+            del kwargs["nodes"]
         if targets is None:
             if target_lyrics is None:
                 raise ValueError(
                     "Please specify target_lyrics: the lyric number containing the target syllables"
                 )
-            targets = extract_lyrics(self.stream.flat.notes, target_lyrics)
-        return super().evaluate(targets, **kwargs)
+            targets = extract_lyrics(self.notes, target_lyrics)
 
-    def annotate_note(
-        self,
-        note: Note,
-        text: str,
-        syllable: str,
-        number: int = 1,
-        target: str = None,
-        target_number: int = None,
-    ) -> None:
-        note.addLyric(text, lyricNumber=number)
+        predictions = []
+        for note, node in zip(self.notes, self.path):
+            pred = self.output([node], style=style, note=note)[0]
+            predictions.append(pred)
 
-        # Update color of text and reference syllable, if a target is given
-        if target is not None or target_number is not None:
-            lyrics = {lyric.number: lyric for lyric in note.lyrics}
-            if target is None and target_number in lyrics:
-                target = lyrics[target_number].text
-                if target.startswith("["):
-                    target = target.replace("[", "").replace("]", "")
-                elif target.startswith("("):
-                    target = target.replace("(", "").replace(")", "")
-
-                if "*" in target:
-                    target = target.split("*")[1]
-                    lyrics[target_number].style.color = "red"
-                if target == "?":
-                    lyrics[target_number].style.color = "red"
-                else:
-                    lyrics[target_number].style.color = "black"
-
-            # Color the syllable according to correctness
-            if syllable != target or target is None:
-                lyrics[number].style.color = "red"
-            elif target == "?":
-                lyrics[number].style.color = "blue"
-            else:
-                lyrics[number].style.color = "green"
+        return super().evaluate(targets, predictions=predictions, **kwargs)
 
     def annotate(
         self,
+        test_style: str = None,
+        output_style: str = None,
         targets: Iterable[str] = None,
         target_lyrics: int = None,
-        lyric_offset: int = None,
+        offset: int = None,
         best_only: bool = False,
-        num_paths: int = 6,
+        max_num_paths: int = 4,
         show_more_paths: bool = True,
         show_weights: bool = True,
         show_segments: bool = True,
         show_all_segments: bool = True,
         grey_lyrics_num: int = None,
+        evaluator: Callable = evaluator,
+        colors: dict[str, str] = EVALUATION_COLORS,
     ):
         """Annotate a stream with solmization syllables."""
+        if test_style is None:
+            test_style = "syllable"
+        if output_style is None:
+            output_style = "state-subscript"
         if best_only:
-            num_paths = 1
+            max_num_paths = 1
             show_segments = False
             show_more_paths = False
             show_weights = False
+        if offset is None:
+            offset = num_lyrics(self.stream)
+        notes = self.notes
+        if target_lyrics is not None:
+            targets = extract_lyrics(notes, target_lyrics)
 
-        notes = self.stream.flat.notes
-
-        if lyric_offset is None:
-            try:
-                lyric_offset = (
-                    max([max([l.number for l in n.lyrics]) for n in notes]) + 1
-                )
-            except ValueError:
-                lyric_offset = 0
-
-        for segment in self.iter_segments():
-            start, end = segment["start"], segment["end"]
-            segment_notes = notes[start : end + 1]
-
-            for rank in range(min(num_paths, len(segment["paths"]))):
-                syllables = segment["syllables"][rank]
-                raw_syllables = segment["raw_syllables"][rank]
-                weight = segment["weights"][rank]
-
-                for pos, note in enumerate(segment_notes):
-                    text = syllables[pos]
-                    syllable = raw_syllables[pos]
-                    if show_weights and pos == 0:
-                        text = f"[w={weight:.1f}] {text}"
-
-                    opts = dict()
-                    if targets is not None:
-                        opts["target"] = targets[start + pos]
-                    elif target_lyrics is not None:
-                        opts["target_number"] = target_lyrics
-
-                    self.annotate_note(
-                        note, text, syllable, number=rank + lyric_offset, **opts
-                    )
-
-            if show_more_paths and len(segment["paths"]) > num_paths:
-                segment_notes[0].addLyric(
-                    f"({len(segment['paths']) - num_paths} more paths)"
-                )
-
+        # Local helper function to overline segments
+        def overline_segment(segment_notes, n_paths):
             if (
                 show_segments
                 and len(segment_notes) > 1
-                and (show_all_segments or len(segment["paths"]) > 1)
+                and (show_all_segments or n_paths > 1)
             ):
                 line = Line(segment_notes)
                 line.lineType = "dotted"
                 self.stream.insert(0, line)
 
+        segment_notes = []
+        for pos, (step, note) in enumerate(zip(self.parse.iter_steps(), notes)):
+            n_paths = len(step["nodes"])
+            kwargs = dict(note=note)
+            predictions = self.output(step["nodes"], style=test_style, **kwargs)
+            annotations = self.output(step["nodes"], style=output_style, **kwargs)
+            for rank in range(min(max_num_paths, n_paths)):
+
+                # Annotate the note
+                annot = annotations[rank]
+                pred = predictions[rank]
+                if show_weights and step["is_first"]:
+                    annot = f"[w={step['weights'][rank]:.1f}] {annot}"
+                opts = dict(number=rank + offset + 1)
+                if targets is not None:
+                    result = evaluator(pred, targets[pos])
+                    opts["color"] = colors.get(result, "black")
+                annotate_note(note, annot, **opts)
+
+            # Show the number of hidden paths and overline segments
+            if step["is_first"]:
+                if show_more_paths and n_paths > max_num_paths:
+                    note.addLyric(f"({n_paths - max_num_paths} more paths)")
+                overline_segment(segment_notes, n_paths)
+                segment_notes = []
+
+            # Add next notes to segment
+            segment_notes.append(note)
+
+        # Overline possible final segment and gray out lyrics if needed
+        overline_segment(segment_notes, n_paths)
         if grey_lyrics_num is not None:
             set_lyrics_color(notes, grey_lyrics_num, "#999999")
-
-        return self.stream
 
 
 def solmize(

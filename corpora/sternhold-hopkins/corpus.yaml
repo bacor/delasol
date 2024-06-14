@@ -1,0 +1,90 @@
+title: Sternhold & Hopkins Metrical Psalms (1590)
+
+editor: Bas Cornelissen (b.j.m.cornelissen@uva.nl)
+
+license: CC BY-SA 4.0
+
+copyright: >
+  This work © 2024 by Bas Cornelissen is licensed under CC BY-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/4.0/
+
+source: >
+  Thomas Sternhold and John Hopkins. The Whole Booke Of Psalmes Collected into English meetre. Printed by John Wolfe, London, 1590
+
+comments: >
+  Both the 1574 and 1590 edition include solmization syllables. However, when transcribing the 1574 edition, I noticed many rhythmical irregularities: seemingly wrong note values, resulting in frequent syncopations. I therefore decided to transcribe the 1590 edition, which is more regular in its rhythm, and generally agrees with the 1574 edition on the melody. Whenever solmization syllables were missing from the 1590 edition that could be resolved from the 1574 edition, I have typeset them between square brackets. Missing syllables on repeated notes are set between round brackets. Page numbers on the top left refer to the 1590 edition. 
+
+solmization_style: english
+
+lyric_lines:
+  - text
+  - syllables
+
+works:
+  - id: SH001
+    number: 1
+    title: Veni Creator
+  - id: SH002
+    number: 2
+    title: The humble sute of a Sinner
+  - id: SH003
+    number: 3
+    title: The Song of S. Ambrose called Te Deum
+  - id: SH004
+    number: 4
+    title: The song of the three children
+  - id: SH005
+    number: 5
+    title: Benedictus
+  - id: SH006
+    number: 6
+    title: Magnificat
+  - id: SH007
+    number: 7
+    title: The song of Simeon, called Nunc dimittis
+  - id: SH008
+    number: 8
+    title: "The Simbole or Creed of Athanasius called: Quicunque vult"
+  - id: SH009
+    number: 9
+    title: The Lamentation of a sinner
+  - id: SH010
+    number: 10
+    title: The Lords Prayer or Pater noster
+  - id: SH011
+    number: 11
+    title: The X. Commandments
+  - id: SH012
+    number: 12
+    title: The complaint of a sinner
+  - id: SH013
+    number: 13
+    title: Beatus vir
+    psalm: 1
+  - id: SH014
+    number: 14
+    title: Domine quid
+    psalm: 3
+  - id: SH015
+    number: 15
+    title: Dixit insipiens
+    psalm: 14
+  - id: SH016
+    number: 16
+    title: Diligam te Domine
+    psalm: 18
+  - id: SH017
+    number: 17
+    title: Domine in virtute
+    psalm: 21
+  - id: SH018
+    number: 18
+    title: Ad te domine
+    psalm: 25
+  - id: SH019
+    number: 19
+    title: Exaltabo te Domine
+    psalm: 30
+  - id: SH020
+    number: 20
+    title: Beatus qui intelligit
+    psalm: 41

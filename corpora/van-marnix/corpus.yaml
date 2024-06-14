@@ -1,0 +1,27 @@
+
+title: TO DO
+editor: Bas Cornelissen (b.j.m.cornelissen@uva.nl)
+license: CC BY-SA 4.0
+copyright: >
+  This work © 2024 by Bas Cornelissen is licensed under CC BY-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/4.0/
+source: >
+  TODO
+comments: >
+  None
+
+# Technical specifications
+
+solmization_style: continental
+lyric_lines: 
+  - text
+  - syllables
+
+# Contents
+
+works:
+  - id: PvM001
+    number: 1
+    title: TODO
+  - id: PvM002
+    number: 2
+    title: TODO

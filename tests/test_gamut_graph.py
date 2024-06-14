@@ -37,7 +37,6 @@ class TestHexachordGraph(unittest.TestCase):
         self.assertEqual(hg.tonic, Pitch("G2"))
         self.assertEqual(hg.type, "hard")
         attrs = hg.nodes[Pitch("G2")]
-        self.assertEqual(attrs["syllable"], "ut")
         self.assertEqual(attrs["degree"], 1)
         self.assertEqual(attrs["name"], "ut1")
 

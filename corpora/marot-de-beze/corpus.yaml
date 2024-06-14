@@ -1,0 +1,104 @@
+
+title: Clement Marot & Théodore de Bèze Metrical Psalms (1562)
+editor: Bas Cornelissen (b.j.m.cornelissen@uva.nl)
+license: CC BY-SA 4.0
+copyright: >
+  This work © 2024 by Bas Cornelissen is licensed under CC BY-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/4.0/
+source: >
+  Clement Marot & Théodore de Bèze TODO
+comments: >
+  None
+
+# Technical specifications
+
+solmization_style: continental
+lyric_lines: 
+  - text
+  - syllables
+
+# evaluation:
+#   - target_lyrics: syllable
+#     prediction_style: syllable
+#     output_style: state-subscript
+
+# Contents
+
+works:
+  - id: MdB001
+    number: 1
+    title: Qui au conseil des malins n'a esté
+  - id: MdB002
+    number: 2
+    title: Pourquoy sont bruit et s'assemblent les gens?
+  - id: MdB003
+    number: 3
+    title: O Seigneur que de gens
+  - id: MdB004
+    number: 4
+    title: Quandie t'invoque, helas, escoute
+  - id: MdB005
+    number: 5
+    title: Aux paroles que je eux dire
+  - id: MdB006
+    number: 6
+    title: Ne veuilles pas, ô Sire
+  - id: MdB007
+    number: 7
+    title: Mon Dieu, j'ai en toi esperance
+  - id: MdB008
+    number: 8
+    title: O nostre Dieu et Seigneur amiable
+  - id: MdB009
+    number: 9
+    title: De tout mon coeur t'exalterai
+  - id: MdB010
+    number: 10
+    title: D'ou vient cela, Seigneur je te suppli'
+  - id: MdB011
+    number: 11
+    title: Veu que du tout en Dieu mon coeur s'appuie
+  - id: MdB012
+    number: 12
+    title: Donne secours, Seigneur, il en est heure
+  - id: MdB013
+    number: 13
+    title: Jusques à quand as establi
+  - id: MdB014
+    number: 14
+    title: Le fol malin en soun coeur dit et croit
+  - id: MdB015
+    number: 15
+    title: Qui est-ce qui conversera
+  - id: MdB016
+    number: 16
+    title: Sois moi, Seigneur, ma garde et mon appui
+  - id: MdB017
+    number: 17
+    title: Seigneur, enten à mon bon droict
+  - id: MdB018
+    number: 18
+    title: Je t'aimerai en toute obeissance
+  - id: MdB019
+    number: 19
+    title: Les cieux en chacun lieu
+  - id: MdB020
+    number: 20
+    title: Le Seigneur ta prière entende
+  - id: MdB021
+    number: 21
+    title: Seigneur, le Roi s'esjouira
+  - id: MdB022
+    number: 22
+    title: Mon Dieu, mon Dieu, pourquoi m'as tu laissé
+  - id: MdB023
+    number: 23
+    title: Mon Dieu me paist sous sa puissance haute
+  - id: MdB024
+    number: 24
+    title: La terre au Seigneur appartient
+  - id: MdB025
+    number: 25
+    title: A toi, mon Dieu, mon coeur monte
+  - id: MdB037
+    number: 37
+    title: Ne sois fasché si durant ceste vie
