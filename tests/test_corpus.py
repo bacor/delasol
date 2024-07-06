@@ -9,7 +9,7 @@ import pandas as pd
 from music21.stream import Stream
 
 # Local imports
-from solmization.corpus import Corpus
+from alamire.corpus import Corpus
 
 TEST_CORPUS = "marot-de-beze"
 CUR_DIR = os.path.dirname(__file__)

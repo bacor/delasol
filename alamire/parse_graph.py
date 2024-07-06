@@ -260,7 +260,7 @@ class ParseGraph(SegmentedGraph):
         self.clear()
         self.seq = sequence
         self.start = (0, "START")
-        self.add_node(self.start, label="START")
+        self.add_node(self.start, name="START", position=(0, 0))
 
         # First step: from start to first matching nodes (in the original graph)
         matches = self.search(self.seq[0])
@@ -304,7 +304,7 @@ class ParseGraph(SegmentedGraph):
 
         # Finish up: connect to end node
         self.end = (pos + 1, "END")
-        self.add_node(self.end, label="END")
+        self.add_node(self.end, name="END", position=(pos + 1, 0))
         for prev_node in prev_nodes:
             self.add_edge((pos, prev_node), self.end, weight=0)
         self.set_node_positions()
@@ -340,13 +340,20 @@ class ParseGraph(SegmentedGraph):
             for i, node in enumerate(nodes):
                 self.nodes[node]["position"] = (pos, i)
 
-    def draw(self, fig=None, show_segments: bool = True, show_axes: bool = True, **kws):
+    def draw(
+        self,
+        fig=None,
+        show_segments: bool = True,
+        show_axes: bool = True,
+        width_factor: float = 0.7,
+        **kws,
+    ):
         if fig is None:
-            plt.figure(figsize=(len(self), self.width.max()))
+            plt.figure(figsize=((len(self) - 1) * width_factor, self.width.max()))
         if show_segments:
             for segment in self.segments[1:]:
                 plt.gca().axvline(
-                    segment["start"] - 0.5, color="k", lw=0.5, linestyle="--"
+                    segment.start - 0.5, color="k", lw=0.5, linestyle="--"
                 )
         draw_graph(self, **kws)
         if show_axes:
@@ -364,9 +371,11 @@ class ParseGraph(SegmentedGraph):
             ax.set_yticks(np.arange(0, self.width.max()))
             ax.set_yticklabels(np.arange(1, self.width.max() + 1, dtype=int))
             plt.ylabel("width")
-            plt.ylim(-0.75, self.width.max() - 0.75)
+            plt.ylim(-0.5, self.width.max() - 0.5)
+            plt.xlim(-1, len(self))
         else:
             plt.axis("off")
+        plt.tight_layout()
 
 
 class GamutParseGraph(ParseGraph):

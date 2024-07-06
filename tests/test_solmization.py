@@ -11,9 +11,9 @@ from music21.pitch import Pitch
 from music21.note import Note
 
 # Local imports
-from solmization.gamut_graph import HardContinentalGamut
-from solmization.solmization import solmize, Solmization, StreamSolmization
-from solmization.utils import as_stream
+from alamire.gamut_graph import HardContinentalGamut
+from alamire.solmization import solmize, Solmization, StreamSolmization
+from alamire.utils import as_stream
 
 CUR_DIR = os.path.dirname(__file__)
 

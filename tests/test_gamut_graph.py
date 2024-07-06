@@ -9,11 +9,11 @@ import numpy as np
 from music21.pitch import Pitch
 
 # Local imports
-from solmization.gamut_graph import HexachordGraph
-from solmization.gamut_graph import GamutGraph
-from solmization.gamut_graph import HardContinentalGamut
-from solmization.gamut_graph import SoftContinentalGamut
-from solmization.gamut_graph import CONTINENTAL_MUTATIONS
+from alamire.gamut_graph import HexachordGraph
+from alamire.gamut_graph import GamutGraph
+from alamire.gamut_graph import HardContinentalGamut
+from alamire.gamut_graph import SoftContinentalGamut
+from alamire.gamut_graph import CONTINENTAL_MUTATIONS
 
 
 class TestHexachordGraph(unittest.TestCase):

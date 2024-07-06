@@ -6,7 +6,7 @@
 import unittest
 
 # Local imports
-from solmization.utils import segment_deviations
+from alamire.utils import segment_deviations
 
 
 class TestSegmentation(unittest.TestCase):

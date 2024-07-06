@@ -178,6 +178,7 @@ class Corpus:
         solmization_style: str = None,
         style: str = None,
         force_source: bool = False,
+        solmization_kws: dict = {},
         **kwargs,
     ):
         # Determine options
@@ -190,7 +191,7 @@ class Corpus:
         # Load stream, solmize and evaluate
         work = self.works[id]
         score = music21.converter.parse(work["_musicxml"], forceSource=force_source)
-        solmization = solmize(score, style=solmization_style)
+        solmization = solmize(score, style=solmization_style, **solmization_kws)
         evaluation = solmization.evaluate(target_lyrics=target_lyrics_num, style=style)
         report = self.report_evaluation(evaluation)
 

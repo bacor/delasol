@@ -279,7 +279,11 @@ class GamutGraph(nx.DiGraph):
     def draw(self, show_axes: bool = True, fig=None, diatonic: bool = True, **kws):
         if fig is None:
             plt.figure(figsize=(len(self) * 0.4, len(self.hexachords)))
-        draw_graph(self, **kws)
+        if diatonic:
+            positions = {
+                node: (node[1].diatonicNoteNum, node[0]) for node in self.nodes
+            }
+        draw_graph(self, pos=positions, **kws)
         if show_axes:
             ax = plt.gca()
             ax.spines["top"].set_visible(False)
@@ -290,7 +294,7 @@ class GamutGraph(nx.DiGraph):
             if diatonic:
                 ticks, ticklabels = [], []
                 for p in self.pitches.keys():
-                    ticks.append(p)
+                    ticks.append(p.diatonicNoteNum)
                     nodes = self.pitches[p]
                     parts = set([node[1].unicodeNameWithOctave for node in nodes])
                     ticklabels.append("/".join(parts))

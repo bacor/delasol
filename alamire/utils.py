@@ -140,7 +140,7 @@ def draw_graph(
     if pos is None:
         pos = nx.get_node_attributes(graph, "position")
     if labels is None:
-        labels = nx.get_node_attributes(graph, "label")
+        labels = nx.get_node_attributes(graph, "name")
     kws = dict(
         font_size=9,
         bbox=dict(

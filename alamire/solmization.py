@@ -404,6 +404,7 @@ def solmize(
     fa_super_la_weight: float = None,
     step_weight: float = None,
     hexachord_weights=None,
+    in_place: bool = True,
 ) -> Solmization:
     """A convenience function that creates a Solmization object depending on the input type."""
     opts = {}
@@ -432,7 +433,9 @@ def solmize(
         opts["prune_parse"] = prune_parse
 
     if isinstance(input, Stream):
-        solmization = StreamSolmization(input, style=style, gamut=gamut, **opts)
+        solmization = StreamSolmization(
+            input, style=style, gamut=gamut, in_place=in_place, **opts
+        )
     else:
         solmization = Solmization(input, gamut=gamut, **opts)
     return solmization

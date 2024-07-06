@@ -7,8 +7,9 @@ import unittest
 from music21.pitch import Pitch
 
 # Local imports
-from solmization.gamut_graph import HardContinentalGamut, HexachordGraph, get_gamut
-from solmization.parse_graph import ParseGraph, GamutParseGraph
+from alamire.gamut_graph import HardContinentalGamut, HexachordGraph, get_gamut
+from alamire.parse_graph import ParseGraph, GamutParseGraph
+from alamire import Solmization
 
 
 def hexachord_match_fn(node, target):
@@ -62,6 +63,14 @@ class TestParseGraph(unittest.TestCase):
         gamut = get_gamut("soft-continental")
         seq = [Pitch(p) for p in "F3 B-3 F3 B-3 F3".split(" ")]
         pg = ParseGraph(gamut, seq)
+        self.assertTrue(True)
+
+    @unittest.skip
+    def test_draw(self):
+        sol = Solmization(
+            "C3 G3 A3 C4 D4 A3".split(" "), gamut="hard-continental", prune_parse=False
+        )
+        parse = sol.parse.draw()
         self.assertTrue(True)
 
 
