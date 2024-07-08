@@ -6,7 +6,7 @@
 import unittest
 
 # Local imports
-from alamire.utils import segment_deviations
+from delasol.utils import segment_deviations
 
 
 class TestSegmentation(unittest.TestCase):

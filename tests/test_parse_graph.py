@@ -7,9 +7,9 @@ import unittest
 from music21.pitch import Pitch
 
 # Local imports
-from alamire.gamut_graph import HardContinentalGamut, HexachordGraph, get_gamut
-from alamire.parse_graph import ParseGraph, GamutParseGraph
-from alamire import Solmization
+from delasol.gamut_graph import HardContinentalGamut, HexachordGraph, get_gamut
+from delasol.parse_graph import ParseGraph, GamutParseGraph
+from delasol import Solmization
 
 
 def hexachord_match_fn(node, target):
