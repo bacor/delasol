@@ -329,6 +329,7 @@ class HardContinentalGamut(GamutGraph):
                 HexachordGraph("G3", **hexachord_kws),
                 HexachordGraph("C4", **hexachord_kws),
                 HexachordGraph("G4", **hexachord_kws),
+                HexachordGraph("C5", **hexachord_kws),
             ]
         super().__init__(hexachords=hexachords, mutations=mutations, **kwargs)
 
