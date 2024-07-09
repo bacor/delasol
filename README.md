@@ -39,6 +39,30 @@ Delasol can directly annotate the solmizations as lyrics to a musical score, res
 
 ![alt text](figures/screenshot.png)
 
+Here is an example of how you can solmize multiple voices in a musicxml file:
+
+```python
+# Load the musicxml file
+score = converter.parse('my-file.mxl')
+
+for part in score.parts:
+    solmization = solmize(part, style='continental')
+    solmization.annotate(
+        # All these are optional:
+        # Only annotate the best solmization
+        best_only=True,
+        # Hide the weights
+        show_weights=False, 
+        # Only syllables, no hexachord subscripts
+        output_style='syllable', 
+        # Gray out the lyrics on line 1
+        grey_lyrics_num=1
+    )
+
+# Write to pdf
+score.write('musicxml.pdf', 'my-solmized-file.pdf')
+```
+
 ## Refence
 
 Cornelissen, Bas, Tim Braithwaite, J. Ashley Burgoyne, and Andreas Haug. “The Helping Hand: A Computational Perspective on Guidonian Solmisation.” In Medieval and Renaissance Music Conference, Granada, 2024.
