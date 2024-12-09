@@ -1,0 +1,64 @@
+title: Tinctoris Expositio Manus exempla mutationum (ca 1475)
+
+editor: Artur Dobija (arturdobija@gmail.com)
+
+license: CC BY-SA 4.0
+
+copyright: >
+  This work © 2024 by Artur Dobija is licensed under CC BY-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/4.0/
+
+source: >
+  Tinctoris, Johannes, d. 1511. Tractatus de musica, book, 1875; Lille, France. 
+
+comments: >
+  When mutation is explicitly marked by Tinctoris (by giving two syllables for one note), I leave only the final one. One Flat sign in bracket is used when Tinctoris expects soft hexachord. I interpreted the notation as mensural. Page numbers on the top left refer to the 1875 e. 
+
+solmization_style: continental
+
+lyric_lines:
+  - empty
+  - syllables
+
+works:
+  - id: JT001
+    number: 1
+    title: Exemplum 1
+  - id: JT002
+    number: 2
+    title: Exemplum 2
+  - id: JT003
+    number: 3
+    title: Exemplum 3
+  - id: JT004
+    number: 4
+    title: Exemplum 4
+  - id: JT005
+    number: 5
+    title: Exemplum 5
+  - id: JT006
+    number: 6
+    title: Exemplum 6
+  - id: JT007
+    number: 7
+    title: Exemplum 7
+  - id: JT008
+    number: 8
+    title: Exemplum 8
+  - id: JT009
+    number: 9
+    title: Exemplum 9
+  - id: JT010
+    number: 10
+    title: Exemplum 10
+  - id: JT011
+    number: 11
+    title: Exemplum 11
+  - id: JT012
+    number: 12
+    title: Exemplum 12
+  - id: JT013
+    number: 13
+    title: Exemplum 13
+  - id: JT013
+    number: 14
+    title: Exemplum 14
