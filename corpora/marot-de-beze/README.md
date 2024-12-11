@@ -12,10 +12,11 @@ These are meant as diplomatic editions, not correcting mistakes (although correc
 - **Note shapes.** Modernize note shapes (round instead of diamond).
 - **Clef.** Transcribe music in the original clef.
 - **Time signature.** Transcribe psalms in the original time signature: usually that is in cut time or in a 4/2 meter.
-- **Barlines.** Use ordinary barlines in the transcription for easy reference (and not, say, Mensuralstriche). This might occassionally introduce ties when whole notes cross barlines.
+- **Barlines.** Use ordinary barlines in the transcription for easy reference (and not, say, Mensuralstriche). This might occassionally introduce ties when whole notes cross barlines. The final barline is transcribed as a double barline.
+- **Ties.** All ties are editorial additions to transcribe notes across barlines, unless noted otherwise in the editorial comments.
 - **Last note** The duration of the last note is shown as a double whole note, even when it is a longa in the source, and irrespective of whether it fits in the bar
-- **No layout.** Do not edit the layout to keep the musicxml files clean. In particular, system breaks are not transcribed.
-- **Custos** are not transcribed.
+- **Breaks & custos.** System breaks are indicated by placing a single dash caesura after the last note of a system; page breaks by a double dash caesura. At those places, a custos _corresponding to the next note_ appears in the source, unless explicitly noted otherwise in the editorial comments. This means custos not transcribed explicitly. Example of a editorial comment: `m. 10. The custos is inconsistent: it indicates an A instead of an E`.
+- **No layout.** Do not edit the layout to keep the musicxml files clean. In particular, system and page breaks are not transcribed as such (but using caesura, see above).
 
 ### Metadata
 - **Title & lyricist**. Psalms have titles of the form:  
@@ -30,6 +31,7 @@ These are meant as diplomatic editions, not correcting mistakes (although correc
 
 ### Lyrics
 - **Lyrics line 1**: The original lyrics, without alterations. 
+  - In the source, the very first letter of a psalm is set as a large capital before the score. Such capitals are bold and underlined in the transcription.
   - The original lyrics are often printed as whole words, then the words will be split following modern hyphenation, but hyphens are omitted. 
   - Hyphens in the original are included as en-dashes (–) at the previous syllable.
   - When an n is omitted and written as a tilde-like symbol above the previous vowel, transcribe it like so: `d'hõneurs` (for the modern _d'honneurs_), `dõc` (_donc_), etc.
