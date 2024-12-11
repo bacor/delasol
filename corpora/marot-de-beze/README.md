@@ -9,9 +9,10 @@ These are meant as diplomatic editions, not correcting mistakes (although correc
 ## Transcription guidelines
 
 ### Music
-- **Clef.** Transcribe music in the original clef
-- **Time signature.** Typically transcribed in 4/2 meter
-- **Barlines.** Use barlines in the transcription for easy reference.
+- **Note shapes.** Modernize note shapes (round instead of diamond).
+- **Clef.** Transcribe music in the original clef.
+- **Time signature.** Transcribe psalms in the original time signature: usually that is in cut time or in a 4/2 meter.
+- **Barlines.** Use ordinary barlines in the transcription for easy reference (and not, say, Mensuralstriche). This might occassionally introduce ties when whole notes cross barlines.
 - **Last note** The duration of the last note is shown as a double whole note, even when it is a longa in the source, and irrespective of whether it fits in the bar
 - **No layout.** Do not edit the layout to keep the musicxml files clean. In particular, system breaks are not transcribed.
 - **Custos** are not transcribed.
