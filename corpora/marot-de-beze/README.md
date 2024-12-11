@@ -13,7 +13,8 @@ These are meant as diplomatic editions, not correcting mistakes (although correc
 - **Time signature.** Typically transcribed in 4/2 meter
 - **Barlines.** Use barlines in the transcription for easy reference.
 - **Last note** The duration of the last note is shown as a double whole note, even when it is a longa in the source, and irrespective of whether it fits in the bar
-- **No layout.** Do not edit the layout to keep the musicxml files clean.
+- **No layout.** Do not edit the layout to keep the musicxml files clean. In particular, system breaks are not transcribed.
+- **Custos** are not transcribed.
 
 ### Metadata
 - **Title & lyricist**. Psalms have titles of the form:  
@@ -27,9 +28,18 @@ These are meant as diplomatic editions, not correcting mistakes (although correc
 - **Project Properties.** Add title, subtitle, lyricist, copyright as metadata to the project properties. Standard copyright message `Copyright © Bas Cornelissen 2024; CC BY-SA 4.0`. Insert the work id (e.g. `MdB026`) in the field 'Work number' and add a new property 'Editor' with the editor (e.g. `Bas Cornelissen`).
 
 ### Lyrics
-- **Lyrics line 1**: The original lyrics, without alterations. The original lyrics are often printed as whole words, then the words will be split following modern hyphenation, but hyphens are omitted. Hyphens in the original are included as en-dashes (–) at the previous syllable.
-- **Lyrics line 2**: modernized spelling including hyphenation, following the 1895 edition of Goudimels psalm settings. This line is set in italics.
-- **Lyrics line 3**: solmization syllables (see below)
+- **Lyrics line 1**: The original lyrics, without alterations. 
+  - The original lyrics are often printed as whole words, then the words will be split following modern hyphenation, but hyphens are omitted. 
+  - Hyphens in the original are included as en-dashes (–) at the previous syllable.
+  - When an n is omitted and written as a tilde-like symbol above the previous vowel, transcribe it like so: `d'hõneurs` (for the modern _d'honneurs_), `dõc` (_donc_), etc.
+  - Transcribe a `u` when used instead of `v`, as in `deliurance` (_delivrance_ )
+  - Do extend lyrics with underscores for tied notes.
+- **Lyrics line 2**: modernized spelling including hyphenation, following the 1895 edition of Goudimels psalm settings. 
+  - This line is set in italics.
+  - Copy the interpunction from the 1895 edition, even if it differs from the interpunction in the original. 
+  - Do extend lyrics with underscores for tied notes (or, as usual, normal dashes if they occur within a word).
+- **Lyrics line 3**: solmization syllables (see below). 
+  - Do extend syllables with underscores for tied notes.
 
 ### Solmization syllables
 
@@ -48,36 +58,78 @@ A regular expression matching this scheme:
 ## Goudimel index
 
 Index to the psalms in the 1895 Goudimel edition.
-The final column indicates whether these guidelines are respected.
 
-| Psalm (MdB) | Goudimel num.   | Volume | Page | Title                                         | Guidelines |
-| ----------- | --------------- | ------ | ---- | --------------------------------------------- |---|
-| 1           | I               | 1      | 1    | Qui au conseil des malins n'a esté            | no |
-| 2           | XXXIX           | 1      | 102  | Pourquoi font bruit et s'assemblent les gens? | no |
-| 3           | XVIII           | 1      | 45   | O Seigneur, que de gens                       | no |
-| 4           | CXLIV           | 3      | 115  | Quand je t'invoque, helas, escoute            | no |
-| 5           | XL              | 1      | 105  | Aux paroles que je eux dire                   | no |
-| 6           | CXLV            | 3      | 119  | Ne veuilles pas, ô Sire                       | no |
-| 7           | LXXXVIII        | 2      | 90   | Mon Dieu, j'ai en toi esperance               | no |
-| 8           | XLI             | 1      | 107  | O nostre Dieu et Seigneur amiable             | no |
-| 9           | XLIII           | 1      | 112  | De tout mon coeur t'exalterai                 | no |
-| 10          | XLII            | 1      | 109  | D'ou vient cela, Seigneur je te suppli'       | no |
-| 11          | XLIV            | 1      | 114  | Veu que du tout en Dieu mon coeur s'appuie    | no |
-| 12          | XLV             | 1      | 117  | Donne secours, Seigneur, il en est heure      | no |
-| 13          | XLVI            | 1      | 119  | Jusques à quand as establi                    | no |
-| 14          | XLVII           | 1      | 121  | Le fol malin en soun coeur dit et croit       | no |
-| 15          | CXXVIII         | 3      | 75   | Qui est-ce qui conversera                     | no |
-| 16          | XCVII           | 2      | 114  | Sois moi, Seigneur, ma garde et mon appui     | no |
-| 17          | XCVIII          | 2      | 117  | Seigneur, enten à mon bon droict              | no |
-| 18          | CXLVI           | 3      | 121  | Je t'aimerai en toute obeissance              | no |
-| 19          | CXVIII          | 3      | 44   | Les cieux en chacun lieu                      | no |
-| 20          | XVIII           | 1      | 123  | Le Seigneur ta prière entende                 | no |
-| 21          | VI              | 1      | 16   | Seigneur, le Roi s'esjouira                   | no |
-| 22          | CXLIX           | 3      | 133  | Mon Dieu, mon Dieu, pourquoi m'as tu laissé   | no |
-| 23          | LXXXIX          | 2      | 93   | Mon Dieu me paist sous sa puissance haute     | no |
-| 24          | XLIX            | 1      | 125  | La terre au Seigneur appartient               | no |
-| 25          | XIX             | 1      | 48   | A toi, mon Dieu, mon coeur monte              | no |
-| 37          | LII             | 2      | 4    | Ne sois fasché si durant ceste vie            | no |
-| 26          | XCIX            | 2      | 120  | Seigneur, garde mon droit                     | yes |
-| 27          | CXIX            | 3      | 48   | Le Seigneur est la clairté qui m'adresse      | yes |
-| 28          | XC              | 2      | 96   | O Dieu, qui es ma forteresse                  | yes |
+| Psalm (MdB) | Goudimel num.   | Volume | Page | Title                                         |
+| ----------- | --------------- | ------ | ---- | --------------------------------------------- |
+| 1           | I               | 1      | 1    | Qui au conseil des malins n'a esté            |
+| 2           | XXXIX           | 1      | 102  | Pourquoi font bruit et s'assemblent les gens? |
+| 3           | XVIII           | 1      | 45   | O Seigneur, que de gens                       |
+| 4           | CXLIV           | 3      | 115  | Quand je t'invoque, helas, escoute            |
+| 5           | XL              | 1      | 105  | Aux paroles que je eux dire                   |
+| 6           | CXLV            | 3      | 119  | Ne veuilles pas, ô Sire                       |
+| 7           | LXXXVIII        | 2      | 90   | Mon Dieu, j'ai en toi esperance               |
+| 8           | XLI             | 1      | 107  | O nostre Dieu et Seigneur amiable             |
+| 9           | XLIII           | 1      | 112  | De tout mon coeur t'exalterai                 |
+| 10          | XLII            | 1      | 109  | D'ou vient cela, Seigneur je te suppli'       |
+| 11          | XLIV            | 1      | 114  | Veu que du tout en Dieu mon coeur s'appuie    |
+| 12          | XLV             | 1      | 117  | Donne secours, Seigneur, il en est heure      |
+| 13          | XLVI            | 1      | 119  | Jusques à quand as establi                    |
+| 14          | XLVII           | 1      | 121  | Le fol malin en soun coeur dit et croit       |
+| 15          | CXXVIII         | 3      | 75   | Qui est-ce qui conversera                     |
+| 16          | XCVII           | 2      | 114  | Sois moi, Seigneur, ma garde et mon appui     |
+| 17          | XCVIII          | 2      | 117  | Seigneur, enten à mon bon droict              |
+| 18          | CXLVI           | 3      | 121  | Je t'aimerai en toute obeissance              |
+| 19          | CXVIII          | 3      | 44   | Les cieux en chacun lieu                      |
+| 20          | XVIII           | 1      | 123  | Le Seigneur ta prière entende                 |
+| 21          | VI              | 1      | 16   | Seigneur, le Roi s'esjouira                   |
+| 22          | CXLIX           | 3      | 133  | Mon Dieu, mon Dieu, pourquoi m'as tu laissé   |
+| 23          | LXXXIX          | 2      | 93   | Mon Dieu me paist sous sa puissance haute     |
+| 24          | XLIX            | 1      | 125  | La terre au Seigneur appartient               |
+| 25          | XIX             | 1      | 48   | A toi, mon Dieu, mon coeur monte              |
+| 37          | LII             | 2      | 4    | Ne sois fasché si durant ceste vie            |
+| 26          | XCIX            | 2      | 120  | Seigneur, garde mon droit                     |
+| 27          | CXIX            | 3      | 48   | Le Seigneur est la clairté qui m'adresse      |
+| 28          | XC              | 2      | 96   | O Dieu, qui es ma forteresse                  |
+| 29          | XVII            | 1      | 42   | Vous tous, Princes et Seigneurs               |
+| 30          | CXXIX           | 3      | 77   | Seigneur, puis que m'as retiré.               |
+| 31          | C               | 2      | 122  | J'ai mis en toi mon esperance                 |
+ 
+## Progress
+
+The second column indicates whether the transcription guidelines in this document are respected.
+
+
+| Psalm (MdB) | New guidelines? | Proofread (Bas) |
+| ----------- | --------------- | --------------- |
+| 1           | ❌              |                 |
+| 2           | ❌              |                 |
+| 3           | ❌              |                 |
+| 4           | ❌              |                 |
+| 5           | ❌              |                 |
+| 6           | ❌              |                 |
+| 7           | ❌              |                 |
+| 8           | ❌              |                 |
+| 9           | ❌              |                 |
+| 10          | ❌              |                 |
+| 11          | ❌              |                 |
+| 12          | ❌              |                 |
+| 13          | ❌              |                 |
+| 14          | ❌              |                 |
+| 15          | ❌              |                 |
+| 16          | ❌              |                 |
+| 17          | ❌              |                 |
+| 18          | ❌              |                 |
+| 19          | ❌              |                 |
+| 20          | ❌              |                 |
+| 21          | ❌              |                 |
+| 22          | ❌              |                 |
+| 23          | ❌              |                 |
+| 24          | ❌              |                 |
+| 25          | ❌              |                 |
+| 37          | ❌              |                 |
+| 26          | ✅              |                 |
+| 27          | ✅              |                 |
+| 28          | ✅              |                 |
+| 29          | ✅              |                 |
+| 30          | ✅              |                 |
+| 31          | ✅              |                 |
