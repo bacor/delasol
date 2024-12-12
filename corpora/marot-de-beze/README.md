@@ -96,7 +96,10 @@ Index to the psalms in the 1895 Goudimel edition.
 | 29          | XVII            | 1      | 42   | Vous tous, Princes et Seigneurs               |
 | 30          | CXXIX           | 3      | 77   | Seigneur, puis que m'as retiré.               |
 | 31          | C               | 2      | 122  | J'ai mis en toi mon esperance                 |
- 
+| 32          | II              | 1      | 4    | O bien heureux celui, dont les commises       |
+| 33          | L               | 1      | 127  | Réveillez-vous chacun fidèle                  |
+| 34          | LI              | 2      | 2    | Jamais ne cesserai                            |
+
 ## Progress
 
 The second column indicates whether the transcription guidelines in this document are respected.
@@ -136,3 +139,6 @@ The second column indicates whether the transcription guidelines in this documen
 | 29          | ✅              |                 |
 | 30          | ✅              |                 |
 | 31          | ✅              |                 |
+| 32          | ✅              |                 |
+| 33          | ✅              |                 |
+| 34          | ✅              |                 |
