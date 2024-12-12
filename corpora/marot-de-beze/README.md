@@ -4,7 +4,7 @@ This corpus contains transcriptions of the psalms from the 1562 Genevan Psalter 
 
 Clément Marot and Théodore de Bèze, *Les Psaumes en vers français avec leurs mélodies*, (Geneva: Michel Blanchier, 1562; facsimile ed. by Pierre Pidoux, (Geneva: Librairie Droz, 2nd ed. 1986)
 
-These are meant as diplomatic editions, not correcting mistakes (although corrections may be indicated). Transcribed are note music, solmization syllables, the original lyrics and lyrics in modern spelling. The modern spelling and hyphenation is taken from the 1895 edition of Goudimels psalm settings.
+These are meant as more or less diplomatic editions, in principle not correcting mistakes. Whenever corrections have been made, this is indicated in the editorial comments. Transcriptions include the music, solmization syllables, the original lyrics and lyrics in modern spelling. The modern spelling and hyphenation is taken from the 1895 edition of Goudimels psalm settings.
 
 ## Transcription guidelines
 
@@ -32,10 +32,11 @@ These are meant as diplomatic editions, not correcting mistakes (although correc
 ### Lyrics
 - **Lyrics line 1**: The original lyrics, without alterations. 
   - In the source, the very first letter of a psalm is set as a large capital before the score. Such capitals are bold and underlined in the transcription.
-  - The original lyrics are often printed as whole words, then the words will be split following modern hyphenation, but hyphens are omitted. 
-  - Hyphens in the original are included as en-dashes (–) at the previous syllable.
+  - If syllables in the original are clearly separated, that hyphenation will be used, _without adding hyphens_. If words are printed as whole words and the hyphenation is unclear, modern hyphenation is used and a tilde `~` is added instead of a hyphen to indicate the editorial change. Finally, hyphens in the original are transcribed using en-dashes (`—`); these mostly  occur in words across system breaks or in for example `doy-ie` (_doi je_)
   - When an n is omitted and written as a tilde-like symbol above the previous vowel, transcribe it like so: `d'hõneurs` (for the modern _d'honneurs_), `dõc` (_donc_), etc.
   - Transcribe a `u` when used instead of `v`, as in `deliurance` (_delivrance_ )
+  - Transcribe `œ` instead of `oe` if the ligature appears in the source.
+  - Ignore discretionary ligatures (e.g. on ct)
   - Do extend lyrics with underscores for tied notes.
 - **Lyrics line 2**: modernized spelling including hyphenation, following the 1895 edition of Goudimels psalm settings. 
   - This line is set in italics.
@@ -89,7 +90,6 @@ Index to the psalms in the 1895 Goudimel edition.
 | 23          | LXXXIX          | 2      | 93   | Mon Dieu me paist sous sa puissance haute     |
 | 24          | XLIX            | 1      | 125  | La terre au Seigneur appartient               |
 | 25          | XIX             | 1      | 48   | A toi, mon Dieu, mon coeur monte              |
-| 37          | LII             | 2      | 4    | Ne sois fasché si durant ceste vie            |
 | 26          | XCIX            | 2      | 120  | Seigneur, garde mon droit                     |
 | 27          | CXIX            | 3      | 48   | Le Seigneur est la clairté qui m'adresse      |
 | 28          | XC              | 2      | 96   | O Dieu, qui es ma forteresse                  |
@@ -99,6 +99,10 @@ Index to the psalms in the 1895 Goudimel edition.
 | 32          | II              | 1      | 4    | O bien heureux celui, dont les commises       |
 | 33          | L               | 1      | 127  | Réveillez-vous chacun fidèle                  |
 | 34          | LI              | 2      | 2    | Jamais ne cesserai                            |
+| 35          | XX              | 1      | 51   | Deba contre mes debateurs                     | 
+| 36          | IV              | 1      | 10   | Du malin le meschant vouloir                  |
+| 37          | LII             | 2      | 4    | Ne sois fasché si durant ceste vie            |
+| 38          | CXLVIII         | 3      | 131  | Las, en ta fureur aigue                       |
 
 ## Progress
 
@@ -142,3 +146,7 @@ The second column indicates whether the transcription guidelines in this documen
 | 32          | ✅              |                 |
 | 33          | ✅              |                 |
 | 34          | ✅              |                 |
+| 35          | ✅              |                 |
+| 36          | ✅              |                 |
+| 37          | ✅              |                 |
+| 38          | ✅              |                 |
