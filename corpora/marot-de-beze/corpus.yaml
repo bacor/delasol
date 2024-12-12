@@ -7,13 +7,15 @@ copyright: >
 source: >
   Clement Marot & Théodore de Bèze TODO
 comments: >
-  None
+  See README.md for details, including the transcription guidelines.
 
 # Technical specifications
 
 solmization_style: continental
+
 lyric_lines: 
-  - text
+  - original_text
+  - modernized_text
   - syllables
 
 # evaluation:
@@ -98,7 +100,43 @@ works:
     title: La terre au Seigneur appartient
   - id: MdB025
     number: 25
-    title: A toi, mon Dieu, mon coeur monte
+    title: A toi, mon Dieu, mon coeur monte                    |
+  - id: MdB026
+    number: 26
+    title: Seigneur, garde mon droit
+  - id: MdB027
+    number: 27
+    title: Le Seigneur est la clairté qui m'adresse
+  - id: MdB028
+    number: 28
+    title: O Dieu, qui es ma forteresse
+  - id: MdB029
+    number: 29
+    title: Vous tous, Princes et Seigneurs
+  - id: MdB030
+    number: 30
+    title: Seigneur, puis que m'as retiré
+  - id: MdB031
+    number: 31
+    title: J'ai mis en toi mon esperance
+  - id: MdB032
+    number: 32
+    title: O bien heureux celui, dont les commises
+  - id: MdB033
+    number: 33
+    title: Réveillez-vous chacun fidèle
+  - id: MdB034
+    number: 34
+    title: Jamais ne cesserai
+  - id: MdB035
+    number: 35
+    title: Deba contre mes debateurs
+  - id: MdB036
+    number: 36
+    title: Du malin le meschant vouloir
   - id: MdB037
     number: 37
     title: Ne sois fasché si durant ceste vie
+  - id: MdB038
+    number: 38
+    title: Las, en ta fureur aigue

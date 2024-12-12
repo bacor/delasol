@@ -136,7 +136,6 @@ The second column indicates whether the transcription guidelines in this documen
 | 23          | ❌              |                 |
 | 24          | ❌              |                 |
 | 25          | ❌              |                 |
-| 37          | ❌              |                 |
 | 26          | ✅              |                 |
 | 27          | ✅              |                 |
 | 28          | ✅              |                 |
