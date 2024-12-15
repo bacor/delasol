@@ -91,6 +91,39 @@ ENGLISH_MUTATIONS = {
     },
 }
 
+TINCTORIS_MUTATIONS = {
+    "natural": {
+        "up": {
+            "hard": [(5, 2), (6, 3)],
+            "soft": [(4, 2), (5, 3), (6, 4)],
+        },
+        "down": {
+            "hard": [(1, 3), (2, 4), (3, 5)],
+            "soft": [(1, 4), (2, 5)],
+        },
+    },
+    "hard": {
+        "up": {
+            "natural": [(4, 2), (5, 3), (6, 4), (5, 3)],
+            "soft": [(2, 4), (3, 5), (1, 3)]
+        },
+        "down": {
+            "natural": [(1, 4), (2, 5)],
+            "soft": [(4, 4), (5, 5)]
+        },
+    },
+    "soft": {
+        "up": {
+            "hard": [(2, 2), (3, 3)],
+            "natural": [(5, 2), (6, 3)],
+        },
+        "down": {
+            "natural": [(1, 3), (2, 4), (3, 5)],
+            "hard": [(5, 3), (6, 4)]
+        },
+    },
+}
+
 
 class HexachordGraph(nx.DiGraph):
 
