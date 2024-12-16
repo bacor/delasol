@@ -35,6 +35,7 @@ These are meant as more or less diplomatic editions, in principle not correcting
   - If syllables in the original are clearly separated, that hyphenation will be used, _without adding hyphens_. If words are printed as whole words and the hyphenation is unclear, modern hyphenation is used and a tilde `~` is added instead of a hyphen to indicate the editorial change. Finally, hyphens in the original are transcribed using en-dashes (`—`); these mostly  occur in words across system breaks or in for example `doy-ie` (_doi je_)
   - When an n is omitted and written as a tilde-like symbol above the previous vowel, transcribe it like so: `d'hõneurs` (for the modern _d'honneurs_), `dõc` (_donc_), etc.
   - Transcribe a `u` when used instead of `v`, as in `deliurance` (_delivrance_ )
+  - Transcribe a `v` when used instead of an `u` as in `vn` (_un_).
   - Transcribe `œ` instead of `oe` if the ligature appears in the source.
   - Ignore discretionary ligatures (e.g. on ct)
   - Do extend lyrics with underscores for tied notes.
@@ -103,6 +104,8 @@ Index to the psalms in the 1895 Goudimel edition.
 | 36          | IV              | 1      | 10   | Du malin le meschant vouloir                  |
 | 37          | LII             | 2      | 4    | Ne sois fasché si durant ceste vie            |
 | 38          | CXLVIII         | 3      | 131  | Las, en ta fureur aigue                       |
+| 39          | CI              | 3      | 2    | J'ay dit en moi                               |
+| 40          | XCI             | 2      | 99   | Après avoir constamment attendu               |
 
 ## Progress
 
@@ -149,3 +152,5 @@ The second column indicates whether the transcription guidelines in this documen
 | 36          | ✅              |                 |
 | 37          | ✅              |                 |
 | 38          | ✅              |                 |
+| 39          | ✅              |                 |
+| 40          | ✅              |                 |
