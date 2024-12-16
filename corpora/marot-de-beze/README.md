@@ -10,6 +10,7 @@ These are meant as more or less diplomatic editions, in principle not correcting
 
 ### Music
 - **Note shapes.** Modernize note shapes (round instead of diamond).
+- **Ligatures** Group notes in a ligature with a slur; use underscores to extend the lycrics as usual.
 - **Clef.** Transcribe music in the original clef.
 - **Time signature.** Transcribe psalms in the original time signature: usually that is in cut time or in a 4/2 meter.
 - **Barlines.** Use ordinary barlines in the transcription for easy reference (and not, say, Mensuralstriche). This might occassionally introduce ties when whole notes cross barlines. The final barline is transcribed as a double barline.
@@ -50,9 +51,9 @@ These are meant as more or less diplomatic editions, in principle not correcting
 
 - Valid syllables: `ut, re, mi, fa, sol, la`
 - `?` indicates missing solmization syllable
+- `?[mi]` solmization syllable missing or not readable that should probably be a mi
 - `?mi` probably a mi, but there is some uncertainty (e.g. not readable)
 - `!re[fa]` indicates that there is a re in the source, but this is likely a mistake
-- `!?re[?fa]` indicates that there is a mistake in the source, probably a re, which should probably be a fa
 
 A regular expression matching this scheme:
 
@@ -114,31 +115,31 @@ The second column indicates whether the transcription guidelines in this documen
 
 | Psalm (MdB) | New guidelines? | Proofread (Bas) |
 | ----------- | --------------- | --------------- |
-| 1           | ❌              |                 |
-| 2           | ❌              |                 |
-| 3           | ❌              |                 |
-| 4           | ❌              |                 |
-| 5           | ❌              |                 |
-| 6           | ❌              |                 |
-| 7           | ❌              |                 |
-| 8           | ❌              |                 |
-| 9           | ❌              |                 |
-| 10          | ❌              |                 |
-| 11          | ❌              |                 |
-| 12          | ❌              |                 |
-| 13          | ❌              |                 |
-| 14          | ❌              |                 |
-| 15          | ❌              |                 |
-| 16          | ❌              |                 |
-| 17          | ❌              |                 |
-| 18          | ❌              |                 |
-| 19          | ❌              |                 |
-| 20          | ❌              |                 |
-| 21          | ❌              |                 |
-| 22          | ❌              |                 |
-| 23          | ❌              |                 |
-| 24          | ❌              |                 |
-| 25          | ❌              |                 |
+| 1           | ✅              |                 |
+| 2           | ✅              |                 |
+| 3           | ✅              |                 |
+| 4           | ✅              |                 |
+| 5           | ✅              |                 |
+| 6           | ✅              |                 |
+| 7           | ✅              |                 |
+| 8           | ✅              |                 |
+| 9           | ✅              |                 |
+| 10          | ✅              |                 |
+| 11          | ✅              |                 |
+| 12          | ✅              |                 |
+| 13          | ✅              |                 |
+| 14          | ✅              |                 |
+| 15          | ✅              |                 |
+| 16          | ✅              |                 |
+| 17          | ✅              |                 |
+| 18          | ✅              |                 |
+| 19          | ✅              |                 |
+| 20          | ✅              |                 |
+| 21          | ✅              |                 |
+| 22          | ✅              |                 |
+| 23          | ✅              |                 |
+| 24          | ✅              |                 |
+| 25          | ✅              |                 |
 | 26          | ✅              |                 |
 | 27          | ✅              |                 |
 | 28          | ✅              |                 |
