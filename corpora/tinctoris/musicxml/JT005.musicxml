@@ -8,7 +8,7 @@
     <creator type="composer">Composer / arranger</creator>
     <encoding>
       <software>MuseScore 4.4.3</software>
-      <encoding-date>2024-12-09</encoding-date>
+      <encoding-date>2024-12-15</encoding-date>
       <supports element="accidental" type="yes"/>
       <supports element="beam" type="yes"/>
       <supports element="print" attribute="new-page" type="yes" value="yes"/>
@@ -67,15 +67,15 @@
     </defaults>
   <credit page="1">
     <credit-type>title</credit-type>
-    <credit-words default-x="600.241173" default-y="1611.208292" justify="center" valign="top" font-size="22">Exemplum 5</credit-words>
+    <credit-words default-x="600.239722" default-y="1611.416584" justify="center" valign="top" font-size="22">Exemplum 5</credit-words>
     </credit>
   <credit page="1">
     <credit-type>subtitle</credit-type>
-    <credit-words default-x="600.241173" default-y="1554.058251" justify="center" valign="top" font-size="14">p. 27</credit-words>
+    <credit-words default-x="600.239722" default-y="1554.266563" justify="center" valign="top" font-size="14">p. 27</credit-words>
     </credit>
   <credit page="1">
     <credit-type>composer</credit-type>
-    <credit-words default-x="1114.75731" default-y="1511.208419" justify="right" valign="bottom">Johannes Tictoris</credit-words>
+    <credit-words default-x="1114.754407" default-y="1511.208419" justify="right" valign="bottom">Johannes Tictoris</credit-words>
     </credit>
   <part-list>
     <score-part id="P1">
@@ -100,7 +100,7 @@
         <system-layout>
           <system-margins>
             <left-margin>50</left-margin>
-            <right-margin>-0</right-margin>
+            <right-margin>0</right-margin>
             </system-margins>
           <top-system-distance>170</top-system-distance>
           </system-layout>
@@ -130,7 +130,7 @@
         <notations>
           <slur type="start" number="1"/>
           </notations>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-43.05" relative-y="-30">
           <syllabic>single</syllabic>
           <text>sol</text>
           </lyric>
@@ -154,7 +154,7 @@
           <tied type="start"/>
           <slur type="stop" number="1"/>
           </notations>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-43.05" relative-y="-30">
           <syllabic>single</syllabic>
           <text>re</text>
           </lyric>
@@ -190,7 +190,7 @@
         <duration>8</duration>
         <voice>1</voice>
         <type>breve</type>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-43.05" relative-y="-30">
           <syllabic>single</syllabic>
           <text>re</text>
           </lyric>
@@ -213,7 +213,7 @@
         <notations>
           <slur type="start" number="1"/>
           </notations>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-43.05" relative-y="-30">
           <syllabic>single</syllabic>
           <text>fa</text>
           </lyric>
@@ -237,7 +237,7 @@
           <tied type="start"/>
           <slur type="stop" number="1"/>
           </notations>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-43.05" relative-y="-30">
           <syllabic>single</syllabic>
           <text>mi</text>
           </lyric>
@@ -273,7 +273,7 @@
         <duration>8</duration>
         <voice>1</voice>
         <type>breve</type>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-43.05" relative-y="-30">
           <syllabic>single</syllabic>
           <text>sol</text>
           </lyric>
@@ -291,7 +291,7 @@
         <duration>8</duration>
         <voice>1</voice>
         <type>breve</type>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-43.05" relative-y="-30">
           <syllabic>single</syllabic>
           <text>re</text>
           </lyric>
@@ -309,7 +309,7 @@
         <duration>8</duration>
         <voice>1</voice>
         <type>breve</type>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-43.05" relative-y="-30">
           <syllabic>single</syllabic>
           <text>ut</text>
           </lyric>
@@ -318,14 +318,14 @@
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="11" width="130.35">
+    <measure number="11" width="128.86">
       <print new-system="yes">
         <system-layout>
           <system-margins>
             <left-margin>0</left-margin>
             <right-margin>-0</right-margin>
             </system-margins>
-          <system-distance>205.07</system-distance>
+          <system-distance>205</system-distance>
           </system-layout>
         </print>
       <note default-x="53.31" default-y="-15">
@@ -339,7 +339,7 @@
         <notations>
           <slur type="start" number="1"/>
           </notations>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>mi</text>
           </lyric>
@@ -348,7 +348,7 @@
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="12" width="89.53">
+    <measure number="12" width="88.04">
       <note default-x="12.5" default-y="-10">
         <pitch>
           <step>C</step>
@@ -357,7 +357,7 @@
         <duration>8</duration>
         <voice>1</voice>
         <type>breve</type>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>fa</text>
           </lyric>
@@ -366,7 +366,7 @@
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="13" width="89.53">
+    <measure number="13" width="88.04">
       <note default-x="12.5" default-y="-5">
         <pitch>
           <step>D</step>
@@ -378,7 +378,7 @@
         <notations>
           <slur type="stop" number="1"/>
           </notations>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>sol</text>
           </lyric>
@@ -387,7 +387,7 @@
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="14" width="89.53">
+    <measure number="14" width="88.04">
       <note default-x="12.5" default-y="-25">
         <pitch>
           <step>G</step>
@@ -396,7 +396,7 @@
         <duration>8</duration>
         <voice>1</voice>
         <type>breve</type>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>sol</text>
           </lyric>
@@ -405,7 +405,7 @@
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="15" width="89.53">
+    <measure number="15" width="88.04">
       <note default-x="12.5" default-y="-40">
         <pitch>
           <step>D</step>
@@ -414,7 +414,7 @@
         <duration>8</duration>
         <voice>1</voice>
         <type>breve</type>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>re</text>
           </lyric>
@@ -423,7 +423,7 @@
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="16" width="89.53">
+    <measure number="16" width="88.04">
       <note default-x="12.5" default-y="-5">
         <pitch>
           <step>D</step>
@@ -435,43 +435,46 @@
         <notations>
           <slur type="start" number="1"/>
           </notations>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
-          <text>sol</text>
+          <text>la</text>
           </lyric>
         </note>
       <barline location="right">
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="17" width="89.53">
-      <note default-x="12.5" default-y="-15">
+    <measure number="17" width="104.43">
+      <note default-x="28.89" default-y="-15">
         <pitch>
           <step>B</step>
+          <alter>-1</alter>
           <octave>3</octave>
           </pitch>
         <duration>8</duration>
         <tie type="start"/>
         <voice>1</voice>
         <type>breve</type>
+        <accidental parentheses="yes">flat</accidental>
         <stem>down</stem>
         <notations>
           <tied type="start"/>
           <slur type="stop" number="1"/>
           </notations>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
-          <text>mi</text>
+          <text>fa</text>
           </lyric>
         </note>
       <barline location="right">
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="18" width="89.53">
+    <measure number="18" width="88.04">
       <note default-x="12.5" default-y="-15">
         <pitch>
           <step>B</step>
+          <alter>-1</alter>
           <octave>3</octave>
           </pitch>
         <duration>8</duration>
@@ -486,7 +489,7 @@
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="19" width="89.53">
+    <measure number="19" width="88.04">
       <note default-x="12.5" default-y="-25">
         <pitch>
           <step>G</step>
@@ -495,7 +498,7 @@
         <duration>8</duration>
         <voice>1</voice>
         <type>breve</type>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>ut</text>
           </lyric>
@@ -504,7 +507,7 @@
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="20" width="92.87">
+    <measure number="20" width="91.38">
       <note default-x="15.84" default-y="-15">
         <pitch>
           <step>B</step>
@@ -514,7 +517,7 @@
         <voice>1</voice>
         <type>breve</type>
         <accidental cautionary="yes" parentheses="no">natural</accidental>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>mi</text>
           </lyric>
@@ -523,7 +526,7 @@
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="21" width="89.53">
+    <measure number="21" width="88.04">
       <note default-x="12.5" default-y="-10">
         <pitch>
           <step>C</step>
@@ -538,7 +541,7 @@
           <tied type="start"/>
           <slur type="start" number="1"/>
           </notations>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>fa</text>
           </lyric>
@@ -547,14 +550,14 @@
         <bar-style>none</bar-style>
         </barline>
       </measure>
-    <measure number="22" width="163.08">
+    <measure number="22" width="163.07">
       <print new-system="yes">
         <system-layout>
           <system-margins>
             <left-margin>0</left-margin>
-            <right-margin>-0</right-margin>
+            <right-margin>0</right-margin>
             </system-margins>
-          <system-distance>205.57</system-distance>
+          <system-distance>205</system-distance>
           </system-layout>
         </print>
       <note default-x="53.31" default-y="-10">
@@ -586,7 +589,7 @@
         <notations>
           <slur type="stop" number="1"/>
           </notations>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>re</text>
           </lyric>
@@ -604,7 +607,7 @@
         <duration>8</duration>
         <voice>1</voice>
         <type>breve</type>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>re</text>
           </lyric>
@@ -627,7 +630,7 @@
         <notations>
           <slur type="start" number="1"/>
           </notations>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>fa</text>
           </lyric>
@@ -645,7 +648,7 @@
         <duration>8</duration>
         <voice>1</voice>
         <type>breve</type>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>re</text>
           </lyric>
@@ -666,7 +669,7 @@
         <notations>
           <slur type="stop" number="1"/>
           </notations>
-        <lyric number="2" default-x="10.76" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="10.76" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>mi</text>
           </lyric>
@@ -689,7 +692,7 @@
         <notations>
           <tied type="start"/>
           </notations>
-        <lyric number="2" default-x="2.23" default-y="-63.71" relative-y="-30">
+        <lyric number="1" default-x="2.23" default-y="-40" relative-y="-30">
           <syllabic>single</syllabic>
           <text>re</text>
           </lyric>
