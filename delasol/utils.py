@@ -21,14 +21,17 @@ def as_stream(pitch_string: str, sep: str = " ") -> Stream:
     Parameters
     ----------
     pitch_string : str
-        A string containing pitch representations, separated by the specified separator.
+        A string containing pitch representations, separated by the specified
+        separator.
     sep : str, optional
-        The separator used to split the pitch_string into individual pitches. Default is a space (" ").
+        The separator used to split the pitch_string into individual pitches.
+        Default is a space (" ").
 
     Returns
     -------
     Stream
-        A Stream object containing Note objects created from the pitches in the input string.
+        A Stream object containing Note objects created from the pitches in the
+        input string.
 
     Examples
     --------
@@ -49,7 +52,8 @@ def as_pitch(pitch: PitchLike) -> Pitch:
     Parameters
     ----------
     pitch : PitchLike
-        The input pitch representation, which can be a string or a Pitch object.
+        The input pitch representation, which can be a string or a Pitch
+        object.
 
     Returns
     -------
@@ -123,7 +127,8 @@ def set_lyrics_color(
 
 
 def find_first_difference(sequence, value, offset: int = 0):
-    """Find the index of the first element in the sequence that is different from the value.
+    """Find the index of the first element in the sequence that is different
+    from the value.
 
     >>> find_first_difference([1, 1, 2, 1], 1)
     2
@@ -147,12 +152,13 @@ def find_first_repeat(sequence, value, offset: int = 0):
 
 
 def segment_deviations(sequence, value):
-    """Segment a sequence into parts that are constant and parts that are not. If possible,
-    the deviating parts are surrounded by constant values. The function returns a sequence of
-    tuples `(first, last)` indicating the index of the first and last element of the segment.
+    """Segment a sequence into parts that are constant and parts that are not.
+    If possible, the deviating parts are surrounded by constant values. The
+    function returns a sequence of tuples `(first, last)` indicating the index
+    of the first and last element of the segment.
 
-    In this example, the sequence  `[1, 2, 1, 1, 1, 1]` is divided into two segments:
-    `[1, 2, 1]` and `[1, 1, 1]`:
+    In this example, the sequence `[1, 2, 1, 1, 1, 1]` is divided into two
+    segments: `[1, 2, 1]` and `[1, 1, 1]`:
 
     >>> segment_deviations([1, 2, 1, 1, 1, 1], 1)
     [(0, 2), (3, 5)]
