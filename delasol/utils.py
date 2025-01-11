@@ -11,16 +11,72 @@ from music21.pitch import Pitch
 from music21.stream import Stream
 from music21.note import Note
 
+# Local imports
+from delasol.custom_types import PitchLike
+
 
 def as_stream(pitch_string: str, sep: str = " ") -> Stream:
+    """Convert a string of pitch representations into a Stream of Note objects.
+
+    Parameters
+    ----------
+    pitch_string : str
+        A string containing pitch representations, separated by the specified separator.
+    sep : str, optional
+        The separator used to split the pitch_string into individual pitches. Default is a space (" ").
+
+    Returns
+    -------
+    Stream
+        A Stream object containing Note objects created from the pitches in the input string.
+
+    Examples
+    --------
+    >>> stream = as_stream("C4 D4 E4 F4")
+    >>> stream[0]
+    <music21.note.Note C>
+    >>> stream[1]
+    <music21.note.Note D>
+    """
     pitches = [Pitch(p) for p in pitch_string.split(sep)]
     notes = [Note(p) for p in pitches]
     return Stream(notes)
 
 
-def as_pitch(pitch):
+def as_pitch(pitch: PitchLike) -> Pitch:
+    """Convert a given pitch representation to a Pitch object.
+
+    Parameters
+    ----------
+    pitch : PitchLike
+        The input pitch representation, which can be a string or a Pitch object.
+
+    Returns
+    -------
+    Pitch
+        A Pitch object corresponding to the input representation.
+
+    Raises
+    ------
+    ValueError
+        If the input is neither a string nor a Pitch object.
+
+    Examples
+    --------
+    >>> as_pitch("A4")
+    <music21.pitch.Pitch A4>
+
+    >>> as_pitch(Pitch("C#5"))
+    <music21.pitch.Pitch C#5>
+    >>> as_pitch(1)
+    Traceback (most recent call last):
+        ...
+    ValueError: Expected a Pitch object or string, got <class 'int'>
+    """
     if isinstance(pitch, str):
         pitch = Pitch(pitch)
+    elif not isinstance(pitch, Pitch):
+        raise ValueError(f"Expected a Pitch object or string, got {type(pitch)}")
     return pitch
 
 
@@ -173,5 +229,11 @@ def draw_graph(
         pos=pos,
         edgelist=edges,
         edge_color=[color_mapper(w) for w in weights],
-        **kws
+        **kws,
     )
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
