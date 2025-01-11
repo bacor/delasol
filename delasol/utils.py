@@ -3,6 +3,8 @@
 # Author: Bas Cornelissen
 # Copyright © 2024 Bas Cornelissen
 # -------------------------------------------------------------------
+import typing as t
+
 import networkx as nx
 import numpy as np
 import matplotlib.cm as cm
@@ -13,6 +15,105 @@ from music21.note import Note
 
 # Local imports
 from delasol.custom_types import PitchLike
+
+
+def dict_first(d: dict):
+    """Retrieve the value associated with the first key in a dictionary.
+
+    Parameters
+    ----------
+    d : dict
+        The input dictionary from which to retrieve the first value.
+
+    Returns
+    -------
+    The value associated with the first key in the dictionary.
+
+    Raises
+    ------
+    StopIteration
+        If the dictionary is empty, an exception is raised when trying to
+        retrieve the first key.
+
+    Examples
+    --------
+    >>> dict_first({'a': 1, 'b': 2})
+    1
+    """
+    first_key = next(iter(d.keys()))
+    return d[first_key]
+
+
+def dict_last(d: dict):
+    """Retrieve the value associated with the last key in a dictionary.
+
+    Parameters
+    ----------
+    d : dict
+        A dictionary from which to retrieve the value of the last key.
+
+    Returns
+    -------
+    The value associated with the last key in the dictionary.
+
+    Notes
+    -----
+    If the dictionary is empty, this function will raise a
+    `StopIteration` error due to the use of `next()` on an empty iterator.
+
+    Examples
+    --------
+    >>> dict_last({'a': 1, 'b': 2})
+    2
+    """
+    last_key = next(reversed(d.keys()))
+    return d[last_key]
+
+
+def dict_swap(d: dict):
+    """Swap the keys and values of a dictionary.
+
+    Parameters
+    ----------
+    d : dict
+        A dictionary where the values are unique and hashable.
+
+    Returns
+    -------
+    dict
+        A new dictionary with keys and values swapped. The original dictionary
+        remains unchanged.
+
+    Examples
+    --------
+    >>> dict_swap({'a': 1, 'b': 2})
+    {1: 'a', 2: 'b'}
+    """
+    return {v: k for k, v in d.items()}
+
+
+def as_pitch_list(pitch_string: str, sep: str = " ") -> list[Pitch]:
+    """Convert a string of pitches into a list of Pitch objects.
+
+    Parameters
+    ----------
+    pitch_string : str
+        A string containing pitch values separated by a specified separator.
+    sep : str, optional
+        The separator used to split the pitch_string into individual pitches.
+        Default is a space (" ").
+
+    Returns
+    -------
+    list[Pitch]
+        A list of Pitch objects created from the input string.
+
+    Examples
+    --------
+    >>> as_pitch_list("C4 D4 E4 F4")
+    [<music21.pitch.Pitch C4>, <music21.pitch.Pitch D4>, <music21.pitch.Pitch E4>, <music21.pitch.Pitch F4>]
+    """
+    return [Pitch(p) for p in pitch_string.split(sep)]
 
 
 def as_stream(pitch_string: str, sep: str = " ") -> Stream:
@@ -41,7 +142,7 @@ def as_stream(pitch_string: str, sep: str = " ") -> Stream:
     >>> stream[1]
     <music21.note.Note D>
     """
-    pitches = [Pitch(p) for p in pitch_string.split(sep)]
+    pitches = as_pitch_list(pitch_string, sep=sep)
     notes = [Note(p) for p in pitches]
     return Stream(notes)
 
@@ -186,23 +287,114 @@ def segment_deviations(sequence, value):
     return segments
 
 
+def latexify_subscript(input: str, as_text: bool = True) -> str:
+    """Convert a string to a LaTeX formatted subscript representation.
+
+    Parameters
+    ----------
+    input : str
+        The input string which may contain a subscript indicated by an
+        underscore ('_'). If the underscore is present, the part before the
+        underscore is treated as the main text, and the part after is treated
+        as the subscript.
+    as_text : bool, optional
+        If True, the function returns a LaTeX formatted string with the text
+        and subscript wrapped in a text environment. Default is True.
+
+    Returns
+    -------
+    str
+        A LaTeX formatted string.
+
+    Examples
+    --------
+    >>> latexify_subscript("C4")
+    'C4'
+    >>> latexify_subscript("C_4")
+    '$\\\\text{C}_{\\\\text{4}}$'
+    >>> latexify_subscript("C_4", as_text=False)
+    '$C_{4}$'
+    """
+    if "_" in input:
+        name, subscript = input.split("_")
+        if as_text:
+            return f"$\\text{{{name}}}_{{\\text{{{subscript}}}}}$"
+        else:
+            return f"${name}_{{{subscript}}}$"
+    else:
+        return input
+
+
 def draw_graph(
-    graph,
-    labels=None,
-    pos=None,
-    weights=None,
-    show_loops=False,
+    graph: nx.Graph,
+    labels: t.Union[
+        t.Literal["latex_name", "name", "syllable", "index"], str, dict[t.Any, str]
+    ] = "latex_name",
+    pos: dict[t.Any, (float, float)] = None,
+    weights: t.Iterable[float] = None,
+    show_loops: bool = False,
+    ax: "matplotlib.axis.Axes" = None,
+    color_mapper: t.Callable[[float], t.Any] = lambda w: cm.Reds(0.9 * w + 0.1),
     label_kws={},
     edge_kws={},
-    color_mapper=lambda w: cm.Reds(0.9 * w + 0.1),
+    **shared_kws,
 ):
+    """Draw a graph using NetworkX and Matplotlib.
+
+    Parameters
+    ----------
+    graph : nx.Graph
+        The graph to be drawn.
+
+    labels : {str, dict, optional}
+        The labels to use for the nodes:
+        - str: The attribute of the nodes to use as labels. The attributes
+          "name", "syllable", and "index" are predefined, but you can use
+          custom attributes. A ValueError is raised if the the attribute
+          specified does not exist.
+        - dict: A dictionary mapping nodes to labels.
+        Default is "name".
+
+    pos : dict, optional
+        A dictionary mapping nodes to their positions in the plot. If None,
+        positions will be retrieved from the graph's node attributes.
+
+    weights : iterable of float, optional
+        A collection of weights for the edges. If None, weights will be
+        extracted from the graph's edges.
+
+    show_loops : bool, optional
+        If True, self-loops will be included in the drawing. Default is False.
+
+    ax : matplotlib.axes.Axes, optional
+        The axes to draw the graph on. If None, a new figure will be created.
+
+    label_kws : dict, optional
+        Additional keyword arguments for node label styling.
+
+    edge_kws : dict, optional
+        Additional keyword arguments for edge styling.
+
+    color_mapper : callable, optional
+        A function that maps edge weights to colors. Default is a function
+        that scales weights to a red color gradient.
+
+    Returns
+    -------
+    None
+        The function draws the graph directly and does not return any value.
     """
-    Draw a networkx graph with specific attributes for nodes and edges."""
-    # Nodes
     if pos is None:
         pos = nx.get_node_attributes(graph, "position")
-    if labels is None:
-        labels = nx.get_node_attributes(graph, "name")
+
+    if labels == "latex_name":
+        names = nx.get_node_attributes(graph, "name")
+        labels = {node: latexify_subscript(label) for node, label in names.items()}
+    elif isinstance(labels, str):
+        labels = nx.get_node_attributes(graph, labels)
+        if len(labels) == 0:
+            raise ValueError(f"No labels found for attribute {labels}")
+
     kws = dict(
         font_size=9,
         bbox=dict(
@@ -212,7 +404,7 @@ def draw_graph(
         ),
     )
     kws.update(**label_kws)
-    nx.draw_networkx_labels(graph, labels=labels, pos=pos, **kws)
+    nx.draw_networkx_labels(graph, labels=labels, pos=pos, ax=ax, **kws, **shared_kws)
 
     # Edges
     if show_loops:
@@ -235,11 +427,7 @@ def draw_graph(
         pos=pos,
         edgelist=edges,
         edge_color=[color_mapper(w) for w in weights],
+        ax=ax,
         **kws,
+        **shared_kws,
     )
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

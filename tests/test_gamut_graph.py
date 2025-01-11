@@ -4,62 +4,13 @@
 # Copyright © 2024 Bas Cornelissen
 # -------------------------------------------------------------------
 import unittest
-import networkx as nx
-import numpy as np
 from music21.pitch import Pitch
+import matplotlib.pyplot as plt
 
 # Local imports
-from delasol.gamut_graph import HexachordGraph
+from delasol.utils import as_pitch_list
+from delasol.hexachord_graph import HexachordGraph
 from delasol.gamut_graph import GamutGraph
-from delasol.gamut_graph import HardContinentalGamut
-from delasol.gamut_graph import SoftContinentalGamut
-from delasol.gamut_graph import CONTINENTAL_MUTATIONS
-
-
-class TestHexachordGraph(unittest.TestCase):
-
-    def test_init(self):
-        hg = HexachordGraph(tonic="G2", fa_super_la=True, fa_super_la_weight=0.75)
-        weights = np.array(
-            [
-                [0.5, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [1.0, 0.5, 1.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 1.0, 0.5, 1.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.5, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 1.0, 0.5, 1.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 1.0, 0.5, 0.75],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.75, 0.5],
-            ]
-        )
-        adj = nx.adjacency_matrix(hg).todense()
-        self.assertListEqual(adj.tolist(), weights.tolist())
-        self.assertEqual(hg.number, 1)
-        self.assertEqual(hg.tonic, Pitch("G2"))
-        self.assertEqual(hg.type, "hard")
-        attrs = hg.nodes[Pitch("G2")]
-        self.assertEqual(attrs["degree"], 1)
-        self.assertEqual(attrs["name"], "ut1")
-
-    def test_types(self):
-        H1 = HexachordGraph("G2")
-        self.assertEqual(H1.type, "hard")
-        H2 = HexachordGraph("C3")
-        self.assertEqual(H2.type, "natural")
-        H3 = HexachordGraph("F3")
-        self.assertEqual(H3.type, "soft")
-
-    def test_names(self):
-        H1 = HexachordGraph("G2")
-        self.assertEqual(H1.names["ut1"], Pitch("G2"))
-        self.assertEqual(H1.names["re1"], Pitch("A2"))
-        self.assertEqual(H1.names["mi1"], Pitch("B2"))
-        self.assertEqual(H1.names["fi1"], Pitch("F3"))
-
-        H2 = HexachordGraph("C3")
-        self.assertEqual(H2.names["ut2"], Pitch("C3"))
-        self.assertEqual(H2.names["re2"], Pitch("D3"))
-        self.assertEqual(H2.names["mi2"], Pitch("E3"))
-        self.assertEqual(H2.names["fi2"], Pitch("B-3"))
 
 
 class TestGamutGraph(unittest.TestCase):
@@ -68,14 +19,19 @@ class TestGamutGraph(unittest.TestCase):
         H2 = HexachordGraph("C3")
         gamut = GamutGraph(hexachords=[H1, H2])
         self.assertEqual(len(gamut), 14)
-        self.assertDictEqual(gamut.hexachords, {1: H1, 2: H2})
+        self.assertDictEqual(gamut.hexachords, {Pitch("G2"): H1, Pitch("C3"): H2})
+
+    def test_init_with_bases(self):
+        gamut = GamutGraph(["G2", "C3"])
+        self.assertIsInstance(gamut, GamutGraph)
+
+        gamut = GamutGraph(as_pitch_list("G2 C3"))
+        self.assertIsInstance(gamut, GamutGraph)
 
     def test_extrema(self):
-        H1 = HexachordGraph("G2")
-        H2 = HexachordGraph("C3")
-        gamut = GamutGraph(hexachords=[H1, H2])
-        self.assertEqual(gamut.lowest, (1, Pitch("G2")))
-        self.assertEqual(gamut.highest, (2, Pitch("B-3")))
+        gamut = GamutGraph(["G2", "C3"])
+        self.assertEqual(gamut.lowest_node, (Pitch("G2"), Pitch("G2")))
+        self.assertEqual(gamut.highest_node, (Pitch("C3"), Pitch("B-3")))
 
     def test_overlapping_hexachords(self):
         [H1, H2, H3, H4] = [HexachordGraph(p) for p in "G2 C3 F3 G3".split(" ")]
@@ -86,43 +42,59 @@ class TestGamutGraph(unittest.TestCase):
         self.assertListEqual(neighbours[H3], [H1, H2, H4])
         self.assertListEqual(neighbours[H4], [H2, H3])
 
-    def test_CONTINENTAL_MUTATIONS(self):
-        H1 = HexachordGraph("G2")
-        H2 = HexachordGraph("C3")
-        G = GamutGraph(hexachords=[H1, H2], mutations=CONTINENTAL_MUTATIONS)
-        self.assertTrue((G.names["fa1"], G.names["re2"]) in G.edges)
-        self.assertTrue((G.names["fa2"], G.names["la1"]) in G.edges)
+    def test_names(self):
+        G = GamutGraph(["G2", "C3"])
+        self.assertEqual(G.names["ut_G2"], (Pitch("G2"), Pitch("G2")))
 
     def test_add_edges_by_name(self):
-        H1 = HexachordGraph("G2")
-        H2 = HexachordGraph("C3")
-        G = GamutGraph(hexachords=[H1, H2])
-        G.add_edges_by_names([("fa1", "re2"), ("fa2", "la1")])
-        self.assertTrue((G.names["fa1"], G.names["re2"]) in G.edges)
-        self.assertTrue((G.names["fa2"], G.names["la1"]) in G.edges)
+        G = GamutGraph(["G2", "C3"])
+        G.add_edges_by_names([("fa_G2", "re_C3"), ("fa_C3", "la_G2")])
+        self.assertTrue((G.names["fa_G2"], G.names["re_C3"]) in G.edges)
+        self.assertTrue((G.names["fa_C3"], G.names["la_G2"]) in G.edges)
 
     def test_pitches(self):
+        G = GamutGraph(["G2", "C3"])
+        targets = [(Pitch("G2"), Pitch("C3")), (Pitch("C3"), Pitch("C3"))]
+        self.assertListEqual(G.pitches[Pitch("C3")], targets)
+
+    def test_positons(self):
         H1 = HexachordGraph("G2")
         H2 = HexachordGraph("C3")
         G = GamutGraph(hexachords=[H1, H2])
-        targets = [(1, Pitch("C3")), (2, Pitch("C3"))]
-        self.assertListEqual(G.pitches[Pitch("C3")], targets)
 
+        pos = G.positions(pos_x="order", pos_y="order")
+        self.assertEqual(pos[(H1.base, Pitch("G2"))], (0, 0))
+        self.assertEqual(pos[(H2.base, Pitch("G3"))], (7, 1))
 
-class TestHardContinentalGamut(unittest.TestCase):
-    def test_hard_gamut(self):
-        gamut = HardContinentalGamut()
-        self.assertEqual(gamut.hexachords[1].tonic, Pitch("G2"))
-        self.assertEqual(gamut.hexachords[2].tonic, Pitch("C3"))
-        self.assertEqual(gamut.hexachords[4].tonic, Pitch("G3"))
-        self.assertEqual(gamut.hexachords[5].tonic, Pitch("C4"))
-        self.assertEqual(gamut.hexachords[7].tonic, Pitch("G4"))
+        # Default
+        pos = G.positions(pos_x="diatonic", pos_y="order")
+        self.assertEqual(pos[(H1.base, Pitch("G2"))], (19, 0))
+        self.assertEqual(pos[(H2.base, Pitch("G3"))], (26, 1))
 
+        pos = G.positions(pos_x="ps", pos_y="order")
+        self.assertEqual(pos[(H1.base, Pitch("G2"))], (43, 0))
+        self.assertEqual(pos[(H2.base, Pitch("G3"))], (55, 1))
 
-class TestSoftContinentalGamut(unittest.TestCase):
-    def test_soft_gamut(self):
-        gamut = SoftContinentalGamut()
-        self.assertEqual(gamut.hexachords[2].tonic, Pitch("C3"))
-        self.assertEqual(gamut.hexachords[3].tonic, Pitch("F3"))
-        self.assertEqual(gamut.hexachords[5].tonic, Pitch("C4"))
-        self.assertEqual(gamut.hexachords[6].tonic, Pitch("F4"))
+        pos = G.positions(pos_x="order", pos_y="diatonic")
+        self.assertEqual(pos[(H1.base, Pitch("G2"))], (0, 19))
+        self.assertEqual(pos[(H2.base, Pitch("G3"))], (7, 22))
+
+        pos = G.positions(pos_x="order", pos_y="ps")
+        self.assertEqual(pos[(H1.base, Pitch("G2"))], (0, 43))
+        self.assertEqual(pos[(H2.base, Pitch("G3"))], (7, 48))
+
+        with self.assertRaises(ValueError):
+            G.positions(pos_x="foo", pos_y="bar")
+
+    @unittest.skip
+    def test_draw(self):
+        import matplotlib
+
+        matplotlib.use("MacOSX")
+
+        H1 = HexachordGraph("G2")
+        H2 = HexachordGraph("C3")
+        G = GamutGraph(hexachords=[H1, H2])
+        G.add_edges_by_names([("fa_G2", "re_C3"), ("fa_C3", "la_G2")])
+        G.draw()
+        plt.show()

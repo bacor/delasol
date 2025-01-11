@@ -3,8 +3,12 @@
 # Author: Bas Cornelissen
 # Copyright © 2024 Bas Cornelissen
 # -------------------------------------------------------------------
-from .solmization import solmize
-from .solmization import Solmization
-from .solmization import StreamSolmization
-from .gamut_graph import get_gamut
-from .corpus import Corpus
+# from delasol.solmization import solmize
+# from delasol.solmization import Solmization
+# from .solmization import StreamSolmization
+
+from delasol.hexachord_graph import HexachordGraph
+from delasol.gamut_graph import GamutGraph
+from delasol.solmization_graph import SolmizationGraph
+
+# from .corpus import Corpus

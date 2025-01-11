@@ -7,9 +7,14 @@ import unittest
 from music21.pitch import Pitch
 
 # Local imports
-from delasol.gamut_graph import HardContinentalGamut, HexachordGraph, get_gamut
-from delasol.parse_graph import ParseGraph, GamutParseGraph
-from delasol import Solmization
+from delasol.utils import as_pitch_list
+from delasol.parse_graph import ParseGraph
+from delasol.hexachord_graph import HexachordGraph
+from delasol.styles import get_gamut
+from delasol.styles import HardContinental16CenturyGamut as HardContinentalGamut
+
+# from delasol.solmization import Solmization
+# from delasol.solmizer import Solmizer
 
 
 def hexachord_match_fn(node, target):
@@ -19,7 +24,7 @@ def hexachord_match_fn(node, target):
 class TestParseGraph(unittest.TestCase):
     def test_basics(self):
         gamut = HardContinentalGamut()
-        seq = [Pitch(p) for p in "C3 G3".split(" ")]
+        seq = as_pitch_list("C3 G3")
         pg = ParseGraph(gamut, seq)
         self.assertEqual(len(pg), 7)
 
@@ -46,11 +51,11 @@ class TestParseGraph(unittest.TestCase):
 
         node1attrs = parse.nodes[parse.positions[1][0]]
         self.assertEqual(node1attrs["position"], (1, 0))
-        self.assertEqual(node1attrs["name"], "ut2")
+        self.assertEqual(node1attrs["name"], "ut_C3")
 
         node2attrs = parse.nodes[parse.positions[2][0]]
         self.assertEqual(node2attrs["position"], (2, 0))
-        self.assertEqual(node2attrs["name"], "re2")
+        self.assertEqual(node2attrs["name"], "re_C3")
 
     def test_widths(self):
         gamut = HardContinentalGamut()
@@ -67,48 +72,17 @@ class TestParseGraph(unittest.TestCase):
 
     @unittest.skip
     def test_draw(self):
-        sol = Solmization(
-            "C3 G3 A3 C4 D4 A3".split(" "), gamut="hard-continental", prune_parse=False
-        )
-        parse = sol.parse.draw()
+        gamut = get_gamut("soft-continental")
+        seq = [Pitch(p) for p in "F3 B-3 F3 B-3 F3".split(" ")]
+        pg = ParseGraph(gamut, seq)
+        pg.draw()
         self.assertTrue(True)
-
-
-class TestGamutParseGraph(unittest.TestCase):
-    def test_search_musica_ficta(self):
-        gamut = get_gamut("hard-continental")
-        pg = GamutParseGraph(gamut)
-        matches = pg.search(Pitch("C#4"))
-        self.assertEqual(len(matches), 2)
-
-    def test_shortest_paths_c_sharp(self):
-        gamut = get_gamut("hard-continental")
-        pg = GamutParseGraph(gamut)
-        paths = pg.shortest_paths(Pitch("D4"), Pitch("C#4"))
-        self.assertEqual(len(paths), 2)
-
-    # def test_input_segments(self):
-    #     seq = [Pitch(p) for p in "C3 G3 C4 F3 A3".split(" ")]
-    #     gamut = get_gamut("hard-continental")
-    #     pg = GamutParseGraph(gamut, seq)
-    #     for step in pg.iter_best_path():
-    #         print(step)
-    #     print(pg)
-
-    # TODO should work, but the order nof nodes may be randomized?
-    # def test_b_flat_in_hard_hex(self):
-    #     example = [Pitch(p) for p in "D4 A3 B-3 A3 G3 F3".split(" ")]
-    #     gamut = get_gamut("hard-continental")
-    #     pg = GamutParseGraph(gamut, example, mismatch_penalty=10)
-    #     node_a = pg.positions[4][1]
-    #     node_b_flat = pg.positions[5][0]
-    #     self.assertGreater(pg[node_a][node_b_flat]["weight"], 10)
 
 
 #     def test_mismatch_penalty(self):
 #         gamut = HardContinentalGamut()
 #         seq = [Pitch(p) for p in "A3 B-3 A3".split(" ")]
-#         pg = GamutParseGraph(gamut, seq, mismatch_penalty=2)
+#         pg = Solmization(gamut, seq, mismatch_penalty=2)
 #         node1 = (1, gamut.names["la2"])
 #         node2 = (2, gamut.names["fi2"])
 #         node3 = (3, gamut.names["la2"])

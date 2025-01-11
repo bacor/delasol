@@ -3,18 +3,17 @@
 # Author: Bas Cornelissen
 # Copyright © 2024 Bas Cornelissen
 # -------------------------------------------------------------------
+import typing as t
 import matplotlib.pyplot as plt
 import numpy as np
 import networkx as nx
-from music21.pitch import Pitch
-from typing import Callable, Iterable, Any
 
-from .utils import segment_deviations, draw_graph
-from .gamut_graph import GamutGraph
+from delasol.segmented_graph import Segment, SegmentedGraph
+from delasol.utils import draw_graph
 
-OrigGraphNode = Any
+OrigGraphNode = t.Any
 ParseGraphNode = tuple[int, OrigGraphNode]
-SequenceItem = Any
+SequenceItem = t.Any
 Path = list[ParseGraphNode]
 
 
@@ -22,147 +21,15 @@ def match_fn(node: OrigGraphNode, target: SequenceItem) -> bool:
     return node[1] == target
 
 
-class Segment:
-    def __init__(self, graph, start: int, end: int):
-        if not isinstance(graph, ParseGraph):
-            raise Exception("Only segments of parse graphs are currently supported.")
-        if len(graph.positions[start]) > 1 or len(graph.positions[end]) > 1:
-            raise ValueError("Segments must have a unique end and starting node")
-
-        self.graph = graph
-        self.start = start
-        self.end = end
-        self.start_node = self.graph.positions[start][0]
-        self.end_node = self.graph.positions[end][0]
-        if self.start_node == self.end_node:
-            paths = [[self.start_node]]
-            weights = [0]
-        else:
-            paths = list(
-                nx.all_simple_paths(self.graph, self.start_node, self.end_node)
-            )
-            weights = [nx.path_weight(self.graph, path, "weight") for path in paths]
-
-        self.ranking = np.argsort(weights)
-        self.paths = [paths[i] for i in self.ranking]
-        self.weights = [weights[i] for i in self.ranking]
-
-    def __repr__(self):
-        return f"<Segment {self.start}–{self.end} of {repr(self.graph)}>"
-
-    def __len__(self):
-        return self.end - self.start
-
-    def __iter__(self):
-        for pos in range(self.start, self.end + 1):
-            yield self[pos]
-
-    def __getitem__(self, index):
-        index = index - self.start
-        return dict(
-            nodes=[path[index] for path in self.paths],
-            weights=self.weights,
-            pos_in_segment=index,
-        )
-
-
-class SegmentedGraph(nx.DiGraph):
-    _pos_to_segment = None
-    _positions = None
-    _segments = []
-
-    @property
-    def length(self):
-        return len(self._positions)
-
-    @property
-    def positions(self) -> dict[int, list[ParseGraphNode]]:
-        if self._positions is None:
-            self._positions = {}
-            for node in self.nodes:
-                pos, _ = node
-                if pos not in self._positions:
-                    self._positions[pos] = []
-                self._positions[pos].append(node)
-        return self._positions
-
-    @property
-    def width(self) -> np.ndarray:
-        """A numpy array with the number of nodes at each position."""
-        if self._width is None:
-            self._width = np.zeros(len(self))
-            for pos, _ in self.nodes:
-                self._width[pos] += 1
-        return self._width
-
-    @property
-    def segments(self) -> list[Segment]:
-        if self._segments is None:
-            self._segments = []
-            positions = segment_deviations(self.width, value=1)
-            for start, end in positions:
-                segment = Segment(self, start, end)
-                self._segments.append(segment)
-        return self._segments
-
-    @property
-    def pos_to_segment(self):
-        if self._pos_to_segment is None:
-            self._pos_to_segment = {}
-            for segment in self.segments:
-                for pos in range(segment.start, segment.end + 1):
-                    self._pos_to_segment[pos] = segment
-        return self._pos_to_segment
-
-    def step(self, position: int):
-        segment = self.pos_to_segment[position]
-        return segment[position]
-
-    def iter_steps(
-        self, positions: Iterable[int] = None, return_orig_node: bool = True
-    ):
-        last_segment = None
-        for position in positions:
-            segment = self.pos_to_segment[position]
-            step = segment[position]
-            if return_orig_node:
-                step["nodes"] = [n[1] for n in step["nodes"]]
-            step["is_first"] = segment != last_segment
-            last_segment = segment
-            yield step
-
-    def iter_selected_paths(
-        self,
-        selector: Callable[[Segment], int],
-        positions: Iterable[int] = None,
-        return_orig_node: bool = True,
-    ):
-        for index, segment in enumerate(self.segments):
-            index = selector(index, segment)
-            for i, step in enumerate(segment):
-                pos = segment.start + i
-                if positions is None or pos in positions:
-                    node = step["nodes"][index]
-                    yield node[1] if return_orig_node else node
-
-    def iter_nth_path(self, n: int = 0, **kwargs):
-        selector = lambda index, segment: min(n, len(segment.paths))
-        return self.iter_selected_paths(selector, **kwargs)
-
-    def iter_best_path(self, **kwargs):
-        return self.iter_nth_path(0, **kwargs)
-
-
 class ParseGraph(SegmentedGraph):
     input_positions = None
-    _positions = None
     _shortest_paths = {}
 
     def __init__(
         self,
         graph: nx.Graph,
-        sequence: Iterable[SequenceItem] = None,
-        match_fn: Callable[[OrigGraphNode, SequenceItem], bool] = match_fn,
+        sequence: t.Iterable[SequenceItem],
+        match_fn: t.Callable[[OrigGraphNode, SequenceItem], bool] = match_fn,
         prune: bool = True,
         **kwargs,
     ):
@@ -181,7 +48,7 @@ class ParseGraph(SegmentedGraph):
     ## Parent search operations
 
     def search(
-        self, target: Any, nodes: Iterable[OrigGraphNode] = None
+        self, target: t.Any, nodes: t.Iterable[OrigGraphNode] = None
     ) -> list[tuple[OrigGraphNode, dict]]:
         """Search for nodes matching a certain target value using the match function."""
         if nodes is None:
@@ -239,7 +106,7 @@ class ParseGraph(SegmentedGraph):
 
     def prune_branch(self, source: ParseGraphNode):
         """Remove all predecessors of a node that have only one successor. This allows us to
-        prune branches that cannot parse the sequence anyway."""
+        prune branches that cannot parse the sequence t.Anyway."""
         predecessors = list(self.predecessors(source))
         for predecessor in predecessors:
             if self.out_degree[predecessor] == 1:
@@ -250,13 +117,11 @@ class ParseGraph(SegmentedGraph):
             self.remove_node(source)
 
     def clear(self):
-        self._segments = None
-        self._width = None
-        self._positions = None
+        super().reset_cached_properties()
         self._shortest_paths = {}
         super().clear()
 
-    def build(self, sequence: Iterable[SequenceItem], prune: bool = True):
+    def build(self, sequence: t.Iterable[SequenceItem], prune: bool = True):
         self.clear()
         self.seq = sequence
         self.start = (0, "START")
@@ -313,7 +178,7 @@ class ParseGraph(SegmentedGraph):
 
     def iter_selected_paths(
         self,
-        selector: Callable[[Segment], int],
+        selector: t.Callable[[Segment], int],
         input_only=True,
         **kwargs,
     ):
@@ -376,43 +241,3 @@ class ParseGraph(SegmentedGraph):
         else:
             plt.axis("off")
         plt.tight_layout()
-
-
-class GamutParseGraph(ParseGraph):
-    def __init__(
-        self,
-        gamut: GamutGraph,
-        sequence: Iterable[Pitch] = None,
-        mismatch_penalty: float = 0,
-        match_fn: Any = None,
-        **kwargs,
-    ):
-        if not isinstance(gamut, GamutGraph):
-            raise ValueError("The graph should be a GamutGraph.")
-        if sequence is not None and not isinstance(sequence[0], Pitch):
-            raise ValueError("The sequence should be a list of pitches.")
-        if match_fn is not None:
-            raise Warning("The match function is ignored for GamutParseGraph.")
-
-        self.gamut = gamut
-        self.mismatch_penalty = mismatch_penalty
-        super().__init__(graph=gamut, sequence=sequence, **kwargs)
-
-    def search(
-        self, target: Pitch, nodes: Iterable[OrigGraphNode] = None
-    ) -> list[tuple[OrigGraphNode, dict]]:
-        """Search for nodes with a matching pitch"""
-        if nodes is None:
-            nodes = self.orig.nodes
-        return [n for n in nodes if n[1].diatonicNoteNum == target.diatonicNoteNum]
-
-    def build(self, sequence: Iterable[Pitch], prune: bool = True):
-        super().build(sequence, prune=prune)
-
-        # Add a mismatch penalty to all nodes that do not exactly match the target pitch
-        for pos, target in zip(self.input_positions, sequence):
-            for node in self.positions[pos]:
-                _, (_, pitch) = node
-                if pitch != target:
-                    for predecessor in self.predecessors(node):
-                        self[predecessor][node]["weight"] += self.mismatch_penalty

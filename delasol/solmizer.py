@@ -15,9 +15,12 @@ from music21.tie import Tie
 from music21.clef import Clef
 
 # Local imports
-from .parse_graph import GamutParseGraph, Segment
-from .gamut_graph import GamutGraph, get_gamut, GamutGraphNode, HexachordGraph
-from .utils import (
+from delasol.styles import get_gamut
+from delasol.custom_types import GamutGraphNode
+from delasol.hexachord_graph import HexachordGraph
+from delasol.gamut_graph import GamutGraph
+from delasol.solmization_graph import SolmizationGraph
+from delasol.utils import (
     set_lyrics_color,
     annotate_note,
     num_lyrics,
@@ -56,7 +59,7 @@ EVALUATION_COLORS = dict(
 )
 
 
-SolmizationInput = Union[Iterable[Pitch], Iterable[Note], Iterable[str]]
+SolmizerInput = Union[Iterable[Pitch], Iterable[Note], Iterable[str]]
 GamutInput = Union[GamutGraph, str]
 OutputStyle = Union[str, Iterable[str], Callable[[int, int, Pitch], str]]
 
@@ -98,10 +101,10 @@ def format_davantes(
     hexachord: HexachordGraph,
     pitch: Pitch,
     note: Note = None,
-    solmization: Any = None,
+    Solmizer: Any = None,
     **kwargs,
 ) -> str:
-    clef = solmization.clef
+    clef = Solmizer.clef
     num = pitch.diatonicNoteNum - clef.lowestLine + 2
     dur = note.duration.quarterLength
     if dur > 4:
@@ -131,11 +134,11 @@ FORMATTERS = {
 }
 
 
-class Solmization:
+class Solmizer:
 
     def __init__(
         self,
-        input: SolmizationInput = None,
+        input: SolmizerInput = None,
         gamut: GamutInput = None,
         mismatch_penalty: float = 2,
         prune_parse: bool = True,
@@ -165,7 +168,9 @@ class Solmization:
         self._path = None
         self.gamut = gamut
         self.pitches = pitches
-        self.parse = GamutParseGraph(
+
+        # TODO rename self.parse to self.graph
+        self.parse = SolmizationGraph(
             self.gamut,
             self.pitches,
             mismatch_penalty=mismatch_penalty,
@@ -175,15 +180,15 @@ class Solmization:
 
     @property
     def path(self):
-        """Return the solmization path, defaults to the best solmization path."""
+        """Return the Solmizer path, defaults to the best Solmizer path."""
         if self._path is None:
             self.select("best")
         return self._path
 
     def select(
-        self, path: Union[str, Iterable[int], Callable[[int, Segment], int]] = "best"
+        self, path: Union[str, Iterable[int], Callable[[int, "Segment"], int]] = "best"
     ) -> None:
-        """Select a solmization path"""
+        """Select a Solmizer path"""
         if path == "best":
             self._path = list(self.parse.iter_best_path(input_only=True))
         elif path == "worst":
@@ -234,7 +239,7 @@ class Solmization:
                     degree=degree,
                     pitch=pitch,
                     hexachord=self.gamut.hexachords[hex],
-                    solmization=self,
+                    Solmizer=self,
                     **kwargs,
                 )
             )
@@ -262,7 +267,7 @@ class Solmization:
             return evaluation
 
 
-class StreamSolmization(Solmization):
+class StreamSolmizer(Solmizer):
     def __init__(
         self,
         stream: Stream,
@@ -330,7 +335,7 @@ class StreamSolmization(Solmization):
         evaluator: Callable = evaluator,
         colors: dict[str, str] = EVALUATION_COLORS,
     ):
-        """Annotate a stream with solmization syllables."""
+        """Annotate a stream with Solmizer syllables."""
         if test_style is None:
             test_style = "syllable"
         if output_style is None:
@@ -405,8 +410,8 @@ def solmize(
     step_weight: float = None,
     hexachord_weights=None,
     in_place: bool = True,
-) -> Solmization:
-    """A convenience function that creates a Solmization object depending on the input type."""
+) -> Solmizer:
+    """A convenience function that creates a Solmizer object depending on the input type."""
     opts = {}
 
     gamut_kws = {}
@@ -433,9 +438,9 @@ def solmize(
         opts["prune_parse"] = prune_parse
 
     if isinstance(input, Stream):
-        solmization = StreamSolmization(
+        Solmizer = StreamSolmizer(
             input, style=style, gamut=gamut, in_place=in_place, **opts
         )
     else:
-        solmization = Solmization(input, gamut=gamut, **opts)
-    return solmization
+        Solmizer = Solmizer(input, gamut=gamut, **opts)
+    return Solmizer
