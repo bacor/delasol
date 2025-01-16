@@ -1,5 +1,5 @@
-Pathfinders
-======
+Solmizers
+=========
 
 .. module:: delasol.solmizers
 
