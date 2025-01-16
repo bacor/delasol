@@ -13,3 +13,11 @@ To that end we have transcribed solmizations from several sixteenth-century psal
 .. note::
 
    This project is under active development.
+
+Contents
+--------
+
+.. toctree::
+
+   usage
+   api
