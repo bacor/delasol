@@ -28,7 +28,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
-    "jupyter_sphinx",
+    # "jupyter_sphinx",
 ]
 
 intersphinx_mapping = {
