@@ -12,6 +12,7 @@ env/
 tbr
 playground/
 excluded-notebooks/
+backup
 
 # Exclude output
 corpora/*/output

@@ -3,19 +3,19 @@
 # Author: Bas Cornelissen
 # Copyright © 2024 Bas Cornelissen
 # -------------------------------------------------------------------
-import glob
+import typing as t
+
 import os
 import subprocess
 import yaml
 from datetime import datetime
-from typing import Union, Iterable, Optional
 import pandas as pd
-import seaborn as sns
 import music21
 from music21.metadata import Metadata
 from tqdm.auto import tqdm
 
-from .solmization import solmize, EVALUATION_STATUS
+from delasol import solmize
+from delasol.evaluate import EvalResult
 
 MSCORE_EXECUTABLE = "/Applications/MuseScore 4.app/Contents/MacOS/mscore"
 CUR_DIR = os.path.dirname(__file__)
@@ -137,7 +137,7 @@ class Corpus:
 
     def convert_musescore_files(
         self,
-        to: Iterable[str] = ["musicxml", "pdf"],
+        to: t.Iterable[str] = ["musicxml", "pdf"],
         refresh: bool = False,
         ids: list[str] = None,
     ):
@@ -154,7 +154,7 @@ class Corpus:
 
     def report_evaluation(self, evaluation):
         # Make sure all fields are present
-        for key in EVALUATION_STATUS:
+        for key in EvalResult:
             evaluation[key] = evaluation.get(key, 0)
 
         # Don't count missing syllables as a mistake
@@ -207,7 +207,7 @@ class Corpus:
 
     def evaluate(
         self,
-        ids: Iterable[str] = None,
+        ids: t.Iterable[str] = None,
         target_lyrics: str = "syllables",
         write_output: bool = False,
         output_dir: str = None,

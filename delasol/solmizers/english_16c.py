@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
 # -------------------------------------------------------------------
 # Author: Bas Cornelissen
-# Copyright © 2024 Bas Cornelissen
+# Copyright © 2025 Bas Cornelissen
 # -------------------------------------------------------------------
+
+#######
+#######
+####### TODO Not implemented yet
+#######
+#######
+#######
+#######
+
 import typing as t
 
 # Local imports
-from delasol.gamut_graph import GamutGraph
-from delasol.hexachord_graph import HexachordGraph
+from delasol.graphs.gamut_graph import GamutGraph
+from delasol.graphs.hexachord_graph import HexachordGraph
 
 ENGLISH_MUTATIONS = {
     "natural": {

@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 
 # Local imports
 from delasol.utils import as_pitch_list
-from delasol.hexachord_graph import HexachordGraph
-from delasol.gamut_graph import GamutGraph
+from delasol.graphs.hexachord_graph import HexachordGraph
+from delasol.graphs.gamut_graph import GamutGraph
 
 
 class TestGamutGraph(unittest.TestCase):
@@ -44,57 +44,72 @@ class TestGamutGraph(unittest.TestCase):
 
     def test_names(self):
         G = GamutGraph(["G2", "C3"])
-        self.assertEqual(G.names["ut_G2"], (Pitch("G2"), Pitch("G2")))
+        self.assertEqual(G.name_to_node["ut_G2"], (Pitch("G2"), Pitch("G2")))
 
     def test_add_edges_by_name(self):
         G = GamutGraph(["G2", "C3"])
-        G.add_edges_by_names([("fa_G2", "re_C3"), ("fa_C3", "la_G2")])
-        self.assertTrue((G.names["fa_G2"], G.names["re_C3"]) in G.edges)
-        self.assertTrue((G.names["fa_C3"], G.names["la_G2"]) in G.edges)
+        G.add_edge_by_names("fa_G2", "re_C3")
+        G.add_edge_by_names("fa_C3", "la_G2")
+        self.assertTrue((G.name_to_node["fa_G2"], G.name_to_node["re_C3"]) in G.edges)
+        self.assertTrue((G.name_to_node["fa_C3"], G.name_to_node["la_G2"]) in G.edges)
 
-    def test_pitches(self):
+    def test_pitch_to_node(self):
         G = GamutGraph(["G2", "C3"])
         targets = [(Pitch("G2"), Pitch("C3")), (Pitch("C3"), Pitch("C3"))]
-        self.assertListEqual(G.pitches[Pitch("C3")], targets)
+        self.assertListEqual(G.pitch_to_node[Pitch("C3")], targets)
 
-    def test_positons(self):
+    def test_node_positons(self):
         H1 = HexachordGraph("G2")
         H2 = HexachordGraph("C3")
         G = GamutGraph(hexachords=[H1, H2])
 
-        pos = G.positions(pos_x="order", pos_y="order")
+        pos = G.node_positions(pos_x="order", pos_y="order")
         self.assertEqual(pos[(H1.base, Pitch("G2"))], (0, 0))
         self.assertEqual(pos[(H2.base, Pitch("G3"))], (7, 1))
 
         # Default
-        pos = G.positions(pos_x="diatonic", pos_y="order")
+        pos = G.node_positions(pos_x="diatonic", pos_y="order")
         self.assertEqual(pos[(H1.base, Pitch("G2"))], (19, 0))
         self.assertEqual(pos[(H2.base, Pitch("G3"))], (26, 1))
 
-        pos = G.positions(pos_x="ps", pos_y="order")
+        pos = G.node_positions(pos_x="ps", pos_y="order")
         self.assertEqual(pos[(H1.base, Pitch("G2"))], (43, 0))
         self.assertEqual(pos[(H2.base, Pitch("G3"))], (55, 1))
 
-        pos = G.positions(pos_x="order", pos_y="diatonic")
+        pos = G.node_positions(pos_x="order", pos_y="diatonic")
         self.assertEqual(pos[(H1.base, Pitch("G2"))], (0, 19))
         self.assertEqual(pos[(H2.base, Pitch("G3"))], (7, 22))
 
-        pos = G.positions(pos_x="order", pos_y="ps")
+        pos = G.node_positions(pos_x="order", pos_y="ps")
         self.assertEqual(pos[(H1.base, Pitch("G2"))], (0, 43))
         self.assertEqual(pos[(H2.base, Pitch("G3"))], (7, 48))
 
         with self.assertRaises(ValueError):
-            G.positions(pos_x="foo", pos_y="bar")
+            G.node_positions(pos_x="foo", pos_y="bar")
 
-    @unittest.skip
-    def test_draw(self):
-        import matplotlib
+    def test_add_mutations(self):
+        G = GamutGraph(["G2", "C3", "G3"])
+        mutations = [
+            dict(source="natural", dir="up", target="hard", moves=[("sol", "re")]),
+            dict(source="natural", dir="down", target="hard", moves=[("fa", "la")]),
+            dict(source="hard", dir="up", target="natural", moves=[("fa", "re", 4)]),
+        ]
+        G.add_mutations(mutations, default_weight=3)
 
-        matplotlib.use("MacOSX")
+        # Natural up to the hard hexachord
+        sol_C3 = G.get_node(name="sol_C3")
+        re_G3 = G.get_node(name="re_G3")
+        self.assertTrue(re_G3 in G[sol_C3])
+        self.assertEqual(G[sol_C3][re_G3]["weight"], 3)
 
-        H1 = HexachordGraph("G2")
-        H2 = HexachordGraph("C3")
-        G = GamutGraph(hexachords=[H1, H2])
-        G.add_edges_by_names([("fa_G2", "re_C3"), ("fa_C3", "la_G2")])
-        G.draw()
-        plt.show()
+        # Natural down to the hard hexachord
+        fa_C3 = G.get_node(name="fa_C3")
+        la_G2 = G.get_node(name="la_G2")
+        self.assertTrue(la_G2 in G[fa_C3])
+        self.assertEqual(G[fa_C3][la_G2]["weight"], 3)
+
+        # Hard up to the natural hexachord, different weight
+        fa_G2 = G.get_node(name="fa_G2")
+        re_C3 = G.get_node(name="re_C3")
+        self.assertTrue(re_C3 in G[fa_G2])
+        self.assertEqual(G[fa_G2][re_C3]["weight"], 4)

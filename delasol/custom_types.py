@@ -3,16 +3,30 @@
 # Author: Bas Cornelissen
 # Copyright © 2025 Bas Cornelissen
 # -------------------------------------------------------------------
-from typing import Union
+import typing as t
+
+# Library imports
 from music21.pitch import Pitch
 
-PitchLike = Union[str, Pitch]
-"""
-A Pitch-like data input, can be either a string or a music21 Pitch object
-"""
+# General
+PitchLike = t.Union[str, Pitch]
 
-# Graph nodes
-
+# Hexachord graph types
 HexachordGraphNode = Pitch
 
+# Gamut graph types
 GamutGraphNode = tuple[Pitch, HexachordGraphNode]
+GamutGraphPath = list[GamutGraphNode]
+
+# Rollout graph types
+SeqType = t.TypeVar("SeqType")
+BaseGraphNode = t.TypeVar("BaseNode")
+BaseGraphPath = list[BaseGraphNode]
+RolloutGraphNode = t.Tuple[int, BaseGraphNode | t.Literal["START"] | t.Literal["END"]]
+RolloutGraphPath = list[RolloutGraphNode]
+
+# To be removed
+OrigGraphNode = t.TypeVar("OrigGraphNode")
+ParseGraphNode = tuple[int, OrigGraphNode]
+SequenceItem = t.TypeVar("SequenceItem")
+Path = t.Iterable[ParseGraphNode]

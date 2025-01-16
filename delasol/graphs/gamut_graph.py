@@ -6,14 +6,13 @@
 import typing as t
 from functools import cached_property
 
-# Libraries
+# Library imports
 import networkx as nx
-import matplotlib.pyplot as plt
 from music21.pitch import Pitch
 
 # Local imports
-from delasol.utils import draw_graph, dict_first, dict_last, dict_swap
-from delasol.hexachord_graph import HexachordGraph
+from delasol.utils.dicts import dict_first, dict_last, dict_swap
+from delasol.graphs.hexachord_graph import HexachordGraph
 from delasol.custom_types import GamutGraphNode, PitchLike
 
 
@@ -57,12 +56,12 @@ class GamutGraph(nx.DiGraph):
 
     """
 
-    _cached_properties = ["names", "pitches", "overlapping_hexachords"]
+    _cached_properties = ["name_to_node", "pitch_to_node", "overlapping_hexachords"]
 
     def __init__(
         self,
         hexachords: t.Iterable[t.Union[HexachordGraph, PitchLike]],
-        mutations: dict = None,
+        mutations: list[dict] = None,
         mutation_weight: float = 2,
     ):
         super().__init__()
@@ -71,7 +70,7 @@ class GamutGraph(nx.DiGraph):
             for hexachord in hexachords:
                 self.add_hexachord(hexachord)
         if mutations:
-            self.add_mutations(mutations, weight=mutation_weight)
+            self.add_mutations(mutations, default_weight=mutation_weight)
 
     def __repr__(self):
         bases = [base.nameWithOctave for base in self.hexachords.keys()]
@@ -82,8 +81,10 @@ class GamutGraph(nx.DiGraph):
             bases_str = ", ".join(bases)
             return f"<GamutGraph hexachords=[{bases_str}]>"
 
+    # Properties
+
     @cached_property
-    def names(self) -> dict[str, GamutGraphNode]:
+    def name_to_node(self) -> dict[str, GamutGraphNode]:
         """A dictionary mapping node names to the actual nodes in the graph.
 
         Returns
@@ -95,15 +96,15 @@ class GamutGraph(nx.DiGraph):
         Examples
         --------
         >>> gamut = GamutGraph(["G2", "C3"])
-        >>> gamut.names["ut_G2"]
+        >>> gamut.name_to_node["ut_G2"]
         (<music21.pitch.Pitch G2>, <music21.pitch.Pitch G2>)
-        >>> gamut.names["fi_C3"]
+        >>> gamut.name_to_node["fi_C3"]
         (<music21.pitch.Pitch C3>, <music21.pitch.Pitch B-3>)
         """
         return dict_swap(nx.get_node_attributes(self, "name"))
 
     @cached_property
-    def pitches(self) -> dict[Pitch, list[GamutGraphNode]]:
+    def pitch_to_node(self) -> dict[Pitch, list[GamutGraphNode]]:
         """A dictionary mapping pitches to the corresponding nodes in the graph.
 
         Returns
@@ -115,7 +116,7 @@ class GamutGraph(nx.DiGraph):
         Examples
         --------
         >>> gamut = GamutGraph(["G2", "C3"])
-        >>> gamut.pitches[Pitch("C3")]
+        >>> gamut.pitch_to_node[Pitch("C3")]
         [(<music21.pitch.Pitch G2>, <music21.pitch.Pitch C3>), (<music21.pitch.Pitch C3>, <music21.pitch.Pitch C3>)]
         """
         pitches = {}
@@ -124,6 +125,19 @@ class GamutGraph(nx.DiGraph):
                 pitches[pitch] = []
             pitches[pitch].append((base, pitch))
         return pitches
+
+    @property
+    def names(self):
+        """A list of node names"""
+        return list(self.name_to_node.keys())
+
+    @property
+    def pitches(self):
+        """The list of pitches.
+
+        Note that the order corresponds to the order in self.nodes, and so
+        the pitches may not be sorted by pitch."""
+        return list(self.pitch_to_node.keys())
 
     @property
     def first_hexachord(self) -> HexachordGraph:
@@ -216,6 +230,8 @@ class GamutGraph(nx.DiGraph):
                     neighbors[hex2].append(hex1)
         return neighbors
 
+    # Building methods
+
     def add_hexachord(self, hexachord: t.Union[HexachordGraph, PitchLike]) -> None:
         if isinstance(hexachord, str) or isinstance(hexachord, Pitch):
             hexachord = HexachordGraph(hexachord)
@@ -244,92 +260,149 @@ class GamutGraph(nx.DiGraph):
         ]
         self.add_weighted_edges_from(weighted_edges)
 
-    def add_mutations(self, mutations: dict, weight: float = 2):
-        """
-        Add mutations between hexachords to the graph using a mutation dictionary.
-
-        The dictionary describes the degrees at which you can mutate from each
-        type of hexachord to each other type, in both ascending and descending
-        direction. The dictionary should have the following structure:
-
-        ```
-        {
-            "natural": {
-                "up": {"hard": [moves]},
-                "down": {"hard": [moves]}
-            },
-            "hard": {
-                "up": {"natural": [moves]},
-                "down": {"natural": [moves]}
-            }
-            # ...
-        }
-        ```
-
-        Parameters
-        ----------
-        mutations : dict
-            A dictionary defining the mutation rules between hexachords.
-        weight : float, optional
-            The weight to assign to the edges created by mutations (default is 2).
-
-        Returns
-        -------
-        None
-            This function modifies the graph in place by adding edges based on
-            the specified mutations.
-        """
-        for hexachord in self.hexachords.values():
-            for neighbor in self.overlapping_hexachords[hexachord]:
-                direction = "up" if neighbor.base > hexachord.base else "down"
-                moves = mutations[hexachord.quality][direction].get(
-                    neighbor.quality, []
-                )
-                for move in moves:
-                    source_node = (hexachord.base, hexachord.pitches[move[0] - 1])
-                    target_node = (neighbor.base, neighbor.pitches[move[1] - 1])
-                    edge_weight = weight if len(move) == 2 else move[2]
-                    self.add_edge(source_node, target_node, weight=edge_weight)
-
-    def add_edges_by_names(
+    def add_edge_by_names(
         self,
-        edges: list[tuple[GamutGraphNode, GamutGraphNode, t.Optional[float]]],
-        default_weight: float = 1,
+        source: str,
+        target: str,
+        weight: float = 1,
     ):
-        """Add edges using names of nodes instead of nodes themselves.
+        """Add an edge using names of source and target.
 
         Parameters
         ----------
-        edges : list of tuple
-            A list of tuples representing the edges to be added. Each tuple can
-            either be of the form (source, target) or (source, target, weight).
-        default_weight : float, optional
-            The default weight to assign to the edges if not specified in the
-            tuples. Default is 1.
+        source : str
+            The name of the source node
+        target : str
+            The name of the target node
+        weight : float, optional
+            The weight to use for the edge
 
         Examples
         --------
         >>> G = GamutGraph(["G2", "C3"])
-        >>> G.add_edges_by_names([("fa_G2", "re_C3"), ("fa_C3", "la_G2", 1.5)])
-        >>> (G.names["fa_G2"], G.names["re_C3"]) in G.edges
+        >>> G.add_edge_by_names("fa_G2", "re_C3", weight=3)
+        >>> (G.get_node(name="fa_G2"), G.get_node(name="re_C3")) in G.edges
         True
         """
-        for edge in edges:
-            edge_weight = default_weight if len(edge) == 2 else edge[2]
-            self.add_edge(self.names[edge[0]], self.names[edge[1]], weight=edge_weight)
+        source_node = self.get_node(name=source)
+        target_node = self.get_node(name=target)
+        self.add_edge(source_node, target_node, weight=weight)
 
-    # def solmize(self, node: GamutGraphNode):
-    #     """Return the solmization of a pitch in the gamut graph"""
-    #     return self.nodes[node]["syllable"]
+    def add_mutations(self, mutations, default_weight: float = 2):
+        """Add mutations between hexachords based on hexachord qualities and direction.
 
-    def positions(
+        The mutations list specifies each mutation as a dictionary that
+        indicates the source hexachord, target hexachord, direction of movement
+        (e.g. moving from natural _up_ to a hard hexachord), and finally the
+        actual moves between those two hexachords, specified as syllable pairs.
+        For example, these are the mutations in 16th century continental style:
+
+        ```python
+        mutations = [
+            # Mutations from natural hexachords
+            dict(source="natural", dir="up", target="hard", moves=[("sol", "re")]),
+            dict(source="natural", dir="up", target="hard", moves=[("sol", "re")]),
+            dict(source="natural", dir="up", target="soft", moves=[("fa", "re")]),
+            dict(source="natural", dir="down", target="hard", moves=[("fa", "la")]),
+            dict(source="natural", dir="down", target="soft", moves=[("mi", "la")]),
+
+            # Mutations from hard hexachords
+            dict(source="hard", dir="up", target="natural", moves=[("fa", "re")]),
+            dict(source="hard", dir="down", target="natural", moves=[("mi", "la")]),
+
+            # Mutations from soft hexachords
+            dict(source="soft", dir="up", target="natural", moves=[("sol", "re")]),
+            dict(source="soft", dir="down", target="natural", moves=[("fa", "la")]),
+        ]
+        ```
+
+        Parameters
+        ----------
+        mutations : list of dict
+            A list of mutation dictionaries, where each dictionary contains the
+            following keys:
+                - 'source' : The quality of the source hexachord ('soft', 'hard', or 'natural').
+                - 'target' : The quality of the target hexachord ('soft', 'hard', or 'natural').
+                - 'dir' : The direction of the mutation ('up' or 'down').
+                - 'moves' : A list of moves associated with the mutation, where each
+                  move is a tuple of the form `(source_syll, target_syll, optional_weight)`:
+                  for example, `('sol', 're', 3)` specifies a move from the sol in the source
+                  hexachord to the re in the target hexachord, and assigns the mutation
+                  weight 3. If the weight is omitted, the default_weight is used.
+
+        default_weight : float, optional
+            The default weight to assign to edges if not specified in the moves.
+            Defaults to 2.
+
+        Returns
+        -------
+        None
+            This function modifies the gamut graph directly
+
+        Examples
+        ------
+        >>> G = GamutGraph(["G2", "C3", "G3"])
+        >>> nat_up_hard = dict(source="natural", dir="up", target="hard", moves=[("sol", "re")])
+        >>> nat_down_hard = dict(source="natural", dir="down", target="hard", moves=[("fa", "la", 10)])
+        >>> mutations = [nat_up_hard, nat_down_hard]
+        >>> G.add_mutations(mutations, default_weight=3)
+
+        Now check the mutation from sol in the natural up to the re of the
+        hard hexachord, which will have the default weight of 3
+
+        >>> sol_C3 = G.get_node(name="sol_C3")
+        >>> re_G3 = G.get_node(name="re_G3")
+        >>> (sol_C3, re_G3) in G.edges
+        True
+        >>> G[sol_C3][re_G3]
+        {'weight': 3}
+
+        And the mutation from the fa in the natural, down to the la of the hard
+        hexachord will have a weight of 4, as specified:
+
+        >>> fa_C3 = G.get_node(name="fa_C3")
+        >>> la_G2 = G.get_node(name="la_G2")
+        >>> (fa_C3, la_G2) in G.edges
+        True
+        >>> G[fa_C3][la_G2]
+        {'weight': 10}
+        """
+        for source in self.hexachords.values():
+            for target in self.overlapping_hexachords[source]:
+                direction = "up" if target.base > source.base else "down"
+                for mut in mutations:
+                    if not (
+                        mut["source"] == source.quality
+                        and mut["target"] == target.quality
+                        and mut["dir"] == direction
+                    ):
+                        continue
+
+                    for move in mut["moves"]:
+                        source_name = f"{move[0]}_{source.base_name}"
+                        target_name = f"{move[1]}_{target.base_name}"
+                        weight = default_weight if len(move) == 2 else move[2]
+                        self.add_edge_by_names(source_name, target_name, weight=weight)
+
+    # Utilities
+
+    def get_node(self, name=None, pitch=None):
+        if name:
+            return self.name_to_node[name]
+        elif pitch:
+            return self.pitch_to_node[pitch]
+
+    # Drawing
+
+    def node_positions(
         self,
         pos_x: t.Literal["order", "diatonic", "ps"] = "diatonic",
         pos_y: t.Literal["order", "diatonic", "ps"] = "order",
         offset_x: float = 0,
         offset_y: float = 0,
     ) -> dict[GamutGraphNode, tuple[float, float]]:
-        """Calculate the positions of nodes in the gamut graph.
+        """Calculate positions for the nodes that can be used for
+        plotting the graph.
 
         Parameters
         ----------
@@ -363,12 +436,11 @@ class GamutGraph(nx.DiGraph):
             If an invalid value is provided for pos_x or pos_y.
         """
         positions = {}
-        pitches = list(self.pitches.keys())
         for i, (base, hexachord) in enumerate(self.hexachords.items()):
             for j, pitch in enumerate(hexachord.pitches):
                 match pos_x:
                     case "order":
-                        x = pitches.index(pitch)
+                        x = self.pitches.index(pitch)
                     case "diatonic":
                         x = pitch.diatonicNoteNum
                     case "ps":
@@ -389,95 +461,91 @@ class GamutGraph(nx.DiGraph):
                 positions[(base, pitch)] = (x + offset_x, y + offset_y)
         return positions
 
-    def draw(
-        self,
-        show_axes: bool = True,
-        ax: "matplotlib.axes.Axes" = None,
-        pos_x: t.Literal["order", "diatonic", "ps"] = "diatonic",
-        pos_y: t.Literal["order", "diatonic", "ps"] = "order",
-        pos_kws={},
-        **kws,
-    ):
-        """Draw a graphical representation of hexachords.
+    def draw(self, **kws):
+        """Draws a gamut graph.
+
+        This is a shorthand for :func:`delasol.utils.drawing.draw_gamut_graph`.
+        Note that the drawing function is lazy-loaded: so only imported when
+        you call the `GamutGraph.draw` method.
 
         Parameters
         ----------
-        show_axes : bool, optional
-            If True, display the axes. Default is True.
-        ax : matplotlib.axes.Axes, optional
-            The axes on which to draw the graph. If None, a new figure and axes
-            will be created.
-        pos_x : {'order', 'diatonic', 'ps'}, optional
-            The positioning method for the x-axis. Default is 'diatonic'.
-        pos_y : {'order', 'diatonic', 'ps'}, optional
-            The positioning method for the y-axis. Default is 'order'.
-        pos_kws : dict, optional
-            Additional keyword arguments for positioning.
         **kws : keyword arguments
-            Additional keyword arguments passed to the drawing function.
+            See :func:`delasol.utils.drawing.draw_gamut_graph`
 
         Returns
         -------
         None
-            This function does not return a value but modifies the provided axes
-            to display the hexachord graph.
+            This function does not return a value but draws a matplotlib figure.
         """
-        if ax is None:
-            _, ax = plt.subplots(figsize=(len(self) * 0.4, len(self.hexachords)))
+        from delasol.utils.drawing import draw_gamut_graph
 
-        # Determine positions
-        if "pos" not in kws:
-            _ = pos_kws.pop("pos_x", None)
-            _ = pos_kws.pop("pos_y", None)
-            kws["pos"] = self.positions(pos_x=pos_x, pos_y=pos_y, **pos_kws)
+        draw_gamut_graph(self, **kws)
 
-        # Draw graph!
-        draw_graph(self, ax=ax, **kws)
 
-        # Decorate with nice axes
-        if show_axes:
-            ax = plt.gca()
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            ax.set_axis_on()
-            ax.xaxis.grid(color=".9")
-            ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+###############################################################################
 
-            # X-ticks
-            pitches = self.pitches.keys()
-            lowest = self.lowest_node[1]
-            highest = self.highest_node[1]
-            match pos_x:
-                case "diatonic":
-                    ax.set_xticks([p.diatonicNoteNum for p in pitches])
-                    ax.set_xlim(lowest.diatonicNoteNum - 1, highest.diatonicNoteNum + 1)
-                case "ps":
-                    ax.set_xticks([p.ps for p in pitches])
-                    ax.set_xlim(lowest.ps - 1, highest.ps + 1)
-                case "order":
-                    ax.set_xticks(list(range(len(pitches))))
-                    ax.set_xlim(-1, len(pitches))
+# Gamut graph registry
 
-            xtick_labels = [
-                p.unicodeNameWithOctave if p.name in "CEG" else None
-                for p in self.pitches.keys()
-            ]
-            ax.set_xticklabels(xtick_labels)
-            ax.set_xlabel("pitch")
+GAMUTS = {}
+"""dict[str, GamutGraph]: A dictionary of registered gamut graphs"""
 
-            # Y-ticks
-            bases = self.hexachords.keys()
-            match pos_y:
-                case "diatonic":
-                    ax.set_yticks([p.diatonicNoteNum for p in bases])
-                case "ps":
-                    ax.set_yticks([p.ps for p in bases])
-                case _:
-                    ax.set_yticks(list(range(len(bases))))
 
-            ytick_labels = [base.unicodeNameWithOctave for base in bases]
-            ax.set_yticklabels(ytick_labels)
-            ax.set_ylabel("base of hexachord")
+def register_gamut(gamut: GamutGraph) -> None:
+    """Register a GamutGraph.
+
+    See for example :cls:`delasol.solmizers.continental_16c` for an example
+    of how to register a new GamutGraph.
+
+    Parameters
+    ----------
+    gamut : GamutGraph
+        the GamutGraph class to be registered. It must have a 'name' attribute.
+
+    Raises
+    ------
+    ValueError
+        If the provided gamut is not an instance of GamutGraph or if it does
+        not have a 'name' attribute.
+    """
+    if not issubclass(gamut, GamutGraph):
+        raise ValueError("The gamut graph must be an instance of GamutGraphs")
+    if not hasattr(gamut, "name"):
+        raise ValueError("A gamut graph must have a 'name' attribute")
+
+    GAMUTS[gamut.name] = gamut
+
+
+def get_gamut(name: str, **kws) -> GamutGraph:
+    """Get a new gamut graph instance by its name.
+
+    Parameters
+    ----------
+    name : str
+        The name of the gamut graph to retrieve.
+
+    **kws : keyword arguments
+        Additional keyword arguments to pass to the gamut graph class
+        constructor. See :class:`delasol.graphs.gamut_graph.GamutGraph`
+        for all keywords.
+
+    Returns
+    -------
+    GamutGraph
+        An instance of the specified gamut graph class.
+
+    Raises
+    ------
+    ValueError
+        If no gamut graph with the given name has been registered.
+    """
+    gamut_class = GAMUTS.get(name)
+    if not gamut_class:
+        raise ValueError(f"Gamut graph '{name}' not found.")
+    return gamut_class(**kws)
+
+
+###############################################################################
 
 
 # Ensure that doctest also evaluates these cached properties

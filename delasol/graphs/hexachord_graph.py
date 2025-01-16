@@ -8,34 +8,13 @@ from functools import cached_property
 # Libraries
 import numpy as np
 import networkx as nx
-import matplotlib.pyplot as plt
 from music21.pitch import Pitch
 
 # Local imports
 from delasol.custom_types import PitchLike, HexachordGraphNode
-from delasol.utils import draw_graph, as_pitch, dict_swap
-
-# Conventional hexachords numbering
-octaves = range(0, 10)
-base_notes = ["C", "F", "G"]
-G2_index = len(base_notes) * (2 - octaves[0]) + base_notes.index("G")
-
-HEXACHORD_NUMBERING = {
-    Pitch(f"{note}{octave}"): i - G2_index + 1
-    for i, (note, octave) in enumerate(
-        (note, octave) for octave in octaves for note in base_notes
-    )
-}
-"""
-dict[Pitch, int]: Conventional hexachords numbering so that F2 is 0, G2 is 1, 
-etc. The numbering is extended for down and up beyond the conventional 
-numbering so that e.g. C2 is -1 and C5 is 8.
-"""
-
-SYLLABLES = ["ut", "re", "mi", "fa", "sol", "la", "fi"]
-"""
-list of str: The syllables used to internally name the nodes in a hexachord graph.
-"""
+from delasol.utils.dicts import dict_swap
+from delasol.utils.music import as_pitch
+from delasol.constants import INTERNAL_SYLLABLES, HEXACHORD_NUMBERING
 
 
 class HexachordGraph(nx.DiGraph):
@@ -82,9 +61,9 @@ class HexachordGraph(nx.DiGraph):
     1
     >>> hex.quality
     'hard'
-    >>> hex.names["re_G2"]
+    >>> hex.get_node(name="re_G2")
     <music21.pitch.Pitch A2>
-    >>> hex.syllables["fi"]
+    >>> hex.get_node(syllable="fi")
     <music21.pitch.Pitch F3>
     >>> hex.pitches
     [<music21.pitch.Pitch G2>, <music21.pitch.Pitch A2>, <music21.pitch.Pitch B2>, <music21.pitch.Pitch C3>, <music21.pitch.Pitch D3>, <music21.pitch.Pitch E3>, <music21.pitch.Pitch F3>]
@@ -112,7 +91,9 @@ class HexachordGraph(nx.DiGraph):
         self.build(**kwargs)
 
     def __repr__(self):
-        return f"<HexachordGraph on {self.base.nameWithOctave}>"
+        return f"<HexachordGraph on {self.base_name}>"
+
+    # Properties
 
     @property
     def number(self) -> int | None:
@@ -147,8 +128,21 @@ class HexachordGraph(nx.DiGraph):
         qualities = dict(C="natural", F="soft", G="hard")
         return qualities.get(self.base.name, None)
 
+    @property
+    def base_name(self) -> str:
+        """The name of the base with the octave
+
+        Examples
+        --------
+        >>> HexachordGraph("G2").base_name
+        'G2'
+        >>> HexachordGraph("B-3").base_name
+        'B-3'
+        """
+        return self.base.nameWithOctave
+
     @cached_property
-    def names(self) -> dict[str, HexachordGraphNode]:
+    def name_to_node(self) -> dict[str, HexachordGraphNode]:
         """A dictionary mapping node names to the corresponding nodes.
 
         Returns
@@ -160,13 +154,13 @@ class HexachordGraph(nx.DiGraph):
         Examples
         --------
         >>> hex = HexachordGraph("F3")
-        >>> hex.names
+        >>> hex.name_to_node
         {'ut_F3': <music21.pitch.Pitch F3>, 're_F3': <music21.pitch.Pitch G3>, 'mi_F3': <music21.pitch.Pitch A3>, 'fa_F3': <music21.pitch.Pitch B-3>, 'sol_F3': <music21.pitch.Pitch C4>, 'la_F3': <music21.pitch.Pitch D4>, 'fi_F3': <music21.pitch.Pitch E-4>}
         """
         return dict_swap(nx.get_node_attributes(self, "name"))
 
     @cached_property
-    def syllables(self) -> dict[str, HexachordGraphNode]:
+    def syllable_to_node(self) -> dict[str, HexachordGraphNode]:
         """A dictionary mapping syllables to their corresponding nodes.
 
         Returns
@@ -178,10 +172,30 @@ class HexachordGraph(nx.DiGraph):
         Examples
         --------
         >>> hex = HexachordGraph("G2")
-        >>> hex.syllables
+        >>> hex.syllable_to_node
         {'ut': <music21.pitch.Pitch G2>, 're': <music21.pitch.Pitch A2>, 'mi': <music21.pitch.Pitch B2>, 'fa': <music21.pitch.Pitch C3>, 'sol': <music21.pitch.Pitch D3>, 'la': <music21.pitch.Pitch E3>, 'fi': <music21.pitch.Pitch F3>}
         """
         return dict_swap(nx.get_node_attributes(self, "syllable"))
+
+    @cached_property
+    def index_to_node(self) -> dict[int, HexachordGraphNode]:
+        """A dictionary mapping indices to their corresponding nodes.
+
+        Returns
+        -------
+        dict of int: HexachordGraphNode
+            A dictionary where the keys are the indices of the nodes and the
+            values are the corresponding graph nodes (Pitch objects).
+
+        Examples
+        --------
+        >>> hex = HexachordGraph("G2")
+        >>> hex.index_to_node
+        {0: <music21.pitch.Pitch G2>, 1: <music21.pitch.Pitch A2>, 2: <music21.pitch.Pitch B2>, 3: <music21.pitch.Pitch C3>, 4: <music21.pitch.Pitch D3>, 5: <music21.pitch.Pitch E3>, 6: <music21.pitch.Pitch F3>}
+        """
+        return dict_swap(nx.get_node_attributes(self, "index"))
+
+    # Methods
 
     def build(
         self,
@@ -223,8 +237,9 @@ class HexachordGraph(nx.DiGraph):
         for i, pitch in enumerate(self.pitches):
             self.add_node(
                 pitch,
-                name=f"{SYLLABLES[i]}_{self.base.nameWithOctave}",
-                syllable=SYLLABLES[i],
+                name=f"{INTERNAL_SYLLABLES[i]}_{self.base_name}",
+                # TODO shouldn't this be SYLLABLES[i]?
+                syllable=INTERNAL_SYLLABLES[i],
                 index=i,
             )
 
@@ -233,7 +248,58 @@ class HexachordGraph(nx.DiGraph):
                 if weights[i, j] > 0:
                     self.add_edge(pitch1, pitch2, weight=weights[i, j])
 
-    def positions(
+    def get_node(
+        self, name: str = None, index: int = None, syllable: str = None
+    ) -> HexachordGraphNode:
+        """Retrieve a node using its name, index or syllable.
+
+        Parameters
+        ----------
+        name : str, optional
+            The name of the node to retrieve.
+        index : int, optional
+            The index of the node to retrieve. Note that this is zero-based,
+            so the ut has index 0.
+        syllable : str, optional
+            The syllable associated with the node to retrieve.
+
+        Returns
+        -------
+        HexachordGraphNode
+            The node corresponding to the specified name, index, or syllable.
+
+        Raises
+        ------
+        ValueError
+            If none of the parameters are specified, or more than one.
+
+        Examples
+        --------
+        >>> hex = HexachordGraph("G2")
+        >>> hex.get_node(name="re_G2")
+        <music21.pitch.Pitch A2>
+        >>> hex.get_node(syllable="fi")
+        <music21.pitch.Pitch F3>
+        >>> hex.get_node(index=3)
+        <music21.pitch.Pitch C3>
+        """
+        if (name and syllable) or (name and index) or (index and syllable):
+            raise ValueError(
+                "You can only pass one keyword argument: name, index or syllable"
+            )
+        if not name and not syllable and not index:
+            raise ValueError("You should specify a name, index or syllable.")
+
+        if name is not None:
+            return self.name_to_node[name]
+        elif index is not None:
+            return self.index_to_node[index]
+        elif syllable is not None:
+            return self.syllable_to_node[syllable]
+
+    # Drawing
+
+    def node_positions(
         self, y: float = 0, offset_x: float = 0
     ) -> dict[HexachordGraphNode, tuple[float, float]]:
         """Calculate the positions of nodes in a hexachord graph.
@@ -255,46 +321,40 @@ class HexachordGraph(nx.DiGraph):
         """
         return {node: (offset_x + node.diatonicNoteNum, y) for node in self.nodes}
 
-    def draw(
-        self,
-        ax: "matplotlib.axes.Axes" = None,
-        styling: bool = True,
-        pos_kws={},
-        **kws,
-    ) -> None:
-        """Draws a graphical representation of the hexachord graph.
+    def draw(self, **kws) -> None:
+        """Draws a a hexachord graph.
+
+        This is a shorthand for
+        :func:`delasol.utils.drawing.draw_hexachord_graph`. Note that the
+        drawing function is lazy-loaded: so only imported when you call the
+        `HexachordGraph.draw` method.
 
         Parameters
         ----------
-        fig : plt.Figure, optional
-            A matplotlib figure object to draw on. If None, a new figure will
-            be created. Default is None.
-        pos_kws : dict, optional
-            Additional keyword arguments passed to the positions method. Default is {}.
         **kws : keyword arguments
-            Additional keyword arguments passed to the drawing function.
+            See :func:`delasol.utils.drawing.draw_hexachord_graph`
 
         Returns
         -------
         None
-            This function does not return a value. It modifies the current
-            matplotlib figure.
+            This function does not return a value but draws a matplotlib figure.
         """
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(len(self), 1))
-        if "pos" not in kws:
-            kws["pos"] = self.positions(**pos_kws)
+        from delasol.utils.drawing import draw_hexachord_graph
 
-        draw_graph(self, ax=ax, **kws)
+        draw_hexachord_graph(self, **kws)
 
-        if styling:
-            ax.axis("off")
-            ys = np.array([y for _, y in kws["pos"].values()])
-            ax.set_ylim(ys.min() - 0.5, ys.max() + 0.5)
+    # Deprecated
+
+    def syllables(self):
+        raise DeprecationWarning("use syllable_to_node")
+
+    def names(self):
+        raise DeprecationWarning("use name_to_node")
 
 
 # Ensure that doctest also evaluates these cached properties
 __test__ = {
-    "HexachordGraph.names": HexachordGraph.names,
-    "HexachordGraph.syllables": HexachordGraph.syllables,
+    "HexachordGraph.name_to_node": HexachordGraph.name_to_node,
+    "Hexachordgraph.syllable_to_node": HexachordGraph.syllable_to_node,
+    "Hexachordgraph.index_to_node": HexachordGraph.index_to_node,
 }

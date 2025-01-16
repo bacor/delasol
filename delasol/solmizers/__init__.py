@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # -------------------------------------------------------------------
 # Author: Bas Cornelissen
-# Copyright © 2024 Bas Cornelissen
+# Copyright © 2025 Bas Cornelissen
 # -------------------------------------------------------------------
 
-from delasol.solmizers import *
+from delasol.solmizers.solmizer import solmize
+import delasol.solmizers.continental_16c

@@ -7,8 +7,8 @@ import unittest
 from music21.pitch import Pitch
 
 # Local imports
-from delasol.hexachord_graph import Hexachord
-from delasol.gamut_graph import GamutGraph as Gamut
+from delasol.graphs.hexachord_graph import Hexachord
+from delasol.graphs.gamut_graph import GamutGraph as Gamut
 from delasol.styles.continental_16c import CONTINENTAL_MUTATIONS
 from delasol.styles import HardContinental16CenturyGamut as HardGamut
 from delasol.styles import SoftContinental16CenturyGamut as SoftGamut
