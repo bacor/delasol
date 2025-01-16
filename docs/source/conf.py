@@ -7,8 +7,8 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath(".."))
-
+sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
+# sys.path.insert(0, os.path.abspath(os.path.join("..", "..", "delasol")))
 
 # -- Project information
 
@@ -25,8 +25,10 @@ extensions = [
     "sphinx.ext.duration",
     "sphinx.ext.doctest",
     "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
+    "jupyter_sphinx",
 ]
 
 intersphinx_mapping = {
@@ -49,5 +51,5 @@ epub_show_urls = "footnote"
 
 # Make sure delasol is loadable by jupyter-sphinx:
 # https://jupyter-sphinx.readthedocs.io/en/latest/#configuration-options
-package_path = os.path.abspath("../")
-os.environ["PYTHONPATH"] = ":".join((package_path, os.environ.get("PYTHONPATH", "")))
+# package_path = os.path.abspath("../")
+# os.environ["PYTHONPATH"] = ":".join((package_path, os.environ.get("PYTHONPATH", "")))
