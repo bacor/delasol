@@ -1,7 +1,12 @@
 API
 ===
 
-.. autosummary::
-   :toctree: generated
+.. toctree::
+    :maxdepth: 2
+    :caption: API:
 
-   delasol
+    api/solmizers.rst
+    api/pathfinders.rst
+    api/graphs.rst
+    api/formatters.rst
+    api/utils.rst
