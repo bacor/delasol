@@ -7,13 +7,15 @@
 import os
 import sys
 
-# sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
-sys.path.insert(0, os.path.abspath(os.path.join("..", "..", "delasol")))
+CUR_DIR = os.path.dirname(__file__)
+ROOT_DIR = os.path.join(CUR_DIR, os.path.pardir, os.path.pardir)
+# sys.path.insert(0, os.path.abspath(os.path.join(ROOT_DIR)))
+sys.path.insert(0, os.path.abspath(os.path.join(ROOT_DIR, "delasol")))
 
 # -- Project information
 
 project = "Delasol"
-copyright = "Copyright Bas Cornelissen, 2025"
+copyright = "2024-%Y, Bas Cornelissen"
 author = "Bas Cornelissen"
 
 release = "0.1"
@@ -34,7 +36,7 @@ extensions = [
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
-    "music21": ("https://web.mit.edu/music21/doc", None),
+    "music21": ("https://www.music21.org/music21docs/", None),
 }
 intersphinx_disabled_domains = ["std"]
 
