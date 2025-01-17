@@ -15,7 +15,7 @@ from music21.metadata import Metadata
 from tqdm.auto import tqdm
 
 from delasol import solmize
-from delasol.evaluate import EvalResult
+from delasol.evaluator import EvalResult
 
 MSCORE_EXECUTABLE = "/Applications/MuseScore 4.app/Contents/MacOS/mscore"
 CUR_DIR = os.path.dirname(__file__)

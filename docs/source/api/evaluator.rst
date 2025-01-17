@@ -1,5 +1,5 @@
 Evaluation
 ==========
 
-.. automodule:: delasol.evaluate
+.. automodule:: delasol.evaluator
    :members:

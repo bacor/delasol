@@ -15,7 +15,7 @@ from delasol.utils.music import as_pitch_list, as_stream
 from delasol.solmizers.solmizer import solmize
 from delasol.solmizers.continental_16c import Continental16cSolmizer
 from delasol.solmizers.continental_16c import HardContinental16CenturyGamutGraph
-from delasol.evaluate import EvalResult
+from delasol.evaluator import EvalResult
 from delasol.utils import as_stream
 
 CUR_DIR = os.path.dirname(__file__)

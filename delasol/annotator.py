@@ -12,7 +12,7 @@ from music21.spanner import Line
 
 # Local imports
 from delasol.pathfinders.segmented_pathfinder import SegmentedPathfinder
-from delasol.evaluate import EvalResult
+from delasol.evaluator import EvalResult
 
 
 EvalColors = {

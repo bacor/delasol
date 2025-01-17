@@ -7,7 +7,7 @@ import unittest
 
 # Local imports
 from delasol.utils.music import as_pitch_list, as_stream
-from delasol.annotate import get_annotator
+from delasol.annotator import get_annotator
 from delasol.solmizers.solmizer import get_solmizer
 
 

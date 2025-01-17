@@ -6,7 +6,7 @@
 import unittest
 
 # Local imports
-from delasol.evaluate import Evaluator, EvalResult
+from delasol.evaluator import Evaluator, EvalResult
 
 
 class TestEvaluator(unittest.TestCase):

@@ -1,5 +1,5 @@
 Annotators
 =========
 
-.. automodule:: delasol.annotate
+.. automodule:: delasol.annotator
    :members:

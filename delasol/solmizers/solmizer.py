@@ -20,8 +20,8 @@ from delasol.graphs.rollout_graph import RolloutGraph
 from delasol.pathfinders.pathfinder import Pathfinder
 from delasol.custom_types import GamutGraphPath
 from delasol.formatter import get_formatter
-from delasol.annotate import get_annotator
-from delasol.evaluate import Evaluator
+from delasol.annotator import get_annotator
+from delasol.evaluator import Evaluator
 
 
 class Solmizer(ABC):
