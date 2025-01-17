@@ -20,18 +20,8 @@ class Formatter(ABC):
     Abstract formatter class used to transform solmization paths into
     for example syllable sequences.
 
-    Parameters
-    ----------
-    gamut : GamutGraph
-        The gamut graph
-
-    Attributes
-    ----------
-    gamut : GamutGraph
-        The gamut graph
-
-    Usage examples
-    --------------
+    Usage
+    -----
 
     The formatters are meant to be quite flexible. You can use them to format
     sequences of nodes in the gamut graph: solmization paths. Nodes in the gamut
@@ -78,16 +68,16 @@ class Formatter(ABC):
     `format` method will automatically call the format_path method and take
     care of the rest. The class does need a `name` attribute. That's it:
 
-    ```python
-    class MyFormatFormatter(Formatter):
-        name = "my_format"
+    .. code-block:: python
 
-        def format_path(self, path: GamutGraphPath) -> list[str]:
-            sylls = ["do", "re", "mi", "fa", "sol", "la", "ti"]
-            return [sylls[self.gamut.nodes[node]["index"]] for node in path]
+        class MyFormatFormatter(Formatter):
+            name = "my_format"
 
-    register_formatter(MyFormatFormatter)
-    ```
+            def format_path(self, path: GamutGraphPath) -> list[str]:
+                sylls = ["do", "re", "mi", "fa", "sol", "la", "ti"]
+                return [sylls[self.gamut.nodes[node]["index"]] for node in path]
+
+        register_formatter(MyFormatFormatter)
     """
 
     name: str
@@ -325,6 +315,13 @@ class NameFormatter(Formatter):
     """
     Formatter a node using their unique name: re_C3, mi_G2, etc.
 
+    Parameters
+    ---------
+    unicode : bool, optional
+        If True, the path will be formatted using Unicode characters.
+        Default is False.
+
+
     Examples
     --------
     >>> gamut = GamutGraph(["G2", "C3", "B-2"])
@@ -355,6 +352,13 @@ register_formatter(NameFormatter)
 class HexachordNumberFormatter(Formatter):
     """
     Format nodes as a syllable followed by a hexachord number: ut1, re2, etc.
+
+    Parameters
+    ---------
+    unicode : bool, optional
+        If True, format the path using Unicode characters. Default is True.
+    subscript : bool, optional
+        If True, include subscripts in the formatted path. Default is True.
 
     Examples
     --------

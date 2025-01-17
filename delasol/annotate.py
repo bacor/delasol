@@ -42,13 +42,13 @@ class Annotator(ABC):
     a sequence of notes in the stream, and should return a list of annotations
     of the following form:
 
-    ```python
-    annotations = [
-        dict(text='ut', color='red', lyric_num=2),
-        dict(text='re', color='green', lyric_num=2),
-        # ...
-    ]
-    ```
+    .. code-block:: python
+
+        annotations = [
+            dict(text='ut', color='red', lyric_num=2),
+            dict(text='re', color='green', lyric_num=2),
+            # ...
+
 
     Basically, an annotation contains keywords passed to the `annotate_note`
     method: possibly text, possibly a color, possibly the lyrics line number.

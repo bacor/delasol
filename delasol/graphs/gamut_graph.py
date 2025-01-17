@@ -32,16 +32,6 @@ class GamutGraph(nx.DiGraph):
     mutation_weight : float, optional
         The weight to apply to the mutations. Default is 2.
 
-    Attributes
-    ----------
-    hexachords : dict[Pitch, HexachordGraph]
-        A dictionary mapping base pitches to the corresponding hexachords.
-
-    Notes
-    -----
-    This constructor calls the superclass's initializer and populates the
-    hexachords and mutations if provided.
-
     Examples
     --------
     >>> H1 = HexachordGraph("G2")
@@ -54,6 +44,11 @@ class GamutGraph(nx.DiGraph):
     >>> GamutGraph(["G2", "C3"])
     <GamutGraph hexachords=[G2, C3]>
 
+
+    Attributes
+    ----------
+    hexachords : dict[Pitch, HexachordGraph]
+        A dictionary mapping base pitches to the corresponding hexachords.
     """
 
     _cached_properties = ["name_to_node", "pitch_to_node", "overlapping_hexachords"]
@@ -297,24 +292,24 @@ class GamutGraph(nx.DiGraph):
         actual moves between those two hexachords, specified as syllable pairs.
         For example, these are the mutations in 16th century continental style:
 
-        ```python
-        mutations = [
-            # Mutations from natural hexachords
-            dict(source="natural", dir="up", target="hard", moves=[("sol", "re")]),
-            dict(source="natural", dir="up", target="hard", moves=[("sol", "re")]),
-            dict(source="natural", dir="up", target="soft", moves=[("fa", "re")]),
-            dict(source="natural", dir="down", target="hard", moves=[("fa", "la")]),
-            dict(source="natural", dir="down", target="soft", moves=[("mi", "la")]),
+        .. code-block:: python
 
-            # Mutations from hard hexachords
-            dict(source="hard", dir="up", target="natural", moves=[("fa", "re")]),
-            dict(source="hard", dir="down", target="natural", moves=[("mi", "la")]),
+            mutations = [
+                # Mutations from natural hexachords
+                dict(source="natural", dir="up", target="hard", moves=[("sol", "re")]),
+                dict(source="natural", dir="up", target="hard", moves=[("sol", "re")]),
+                dict(source="natural", dir="up", target="soft", moves=[("fa", "re")]),
+                dict(source="natural", dir="down", target="hard", moves=[("fa", "la")]),
+                dict(source="natural", dir="down", target="soft", moves=[("mi", "la")]),
 
-            # Mutations from soft hexachords
-            dict(source="soft", dir="up", target="natural", moves=[("sol", "re")]),
-            dict(source="soft", dir="down", target="natural", moves=[("fa", "la")]),
-        ]
-        ```
+                # Mutations from hard hexachords
+                dict(source="hard", dir="up", target="natural", moves=[("fa", "re")]),
+                dict(source="hard", dir="down", target="natural", moves=[("mi", "la")]),
+
+                # Mutations from soft hexachords
+                dict(source="soft", dir="up", target="natural", moves=[("sol", "re")]),
+                dict(source="soft", dir="down", target="natural", moves=[("fa", "la")]),
+            ]
 
         Parameters
         ----------

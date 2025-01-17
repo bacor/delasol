@@ -6,14 +6,14 @@ Solmizers
 Abstract Solmizer
 -------------------
 
-.. autoclass:: Solmizer
+.. autoclass:: delasol.solmizers.solmizer.Solmizer
     :members:
     :undoc-members:
 
 16th-century Continental Solmizer
 -------------------------------
 
-.. autoclass:: Continental16cSolmizer
+.. autoclass:: delasol.solmizers.continental_16c.Continental16cSolmizer
     :members:
     :undoc-members:
 

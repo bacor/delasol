@@ -2,11 +2,13 @@ API
 ===
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :caption: API:
 
-    api/solmizers.rst
-    api/pathfinders.rst
     api/graphs.rst
-    api/formatters.rst
+    api/pathfinders.rst
+    api/solmizers.rst
+    api/formatter.rst
+    api/evaluator.rst
+    api/annotator.rst
     api/utils.rst

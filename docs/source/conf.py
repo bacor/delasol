@@ -9,8 +9,8 @@ import sys
 
 CUR_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.join(CUR_DIR, os.path.pardir, os.path.pardir)
-# sys.path.insert(0, os.path.abspath(os.path.join(ROOT_DIR)))
-sys.path.insert(0, os.path.abspath(os.path.join(ROOT_DIR, "delasol")))
+sys.path.insert(0, os.path.abspath(os.path.join(ROOT_DIR)))
+# sys.path.insert(0, os.path.abspath(os.path.join(ROOT_DIR, "delasol")))
 
 # -- Project information
 

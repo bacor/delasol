@@ -8,7 +8,6 @@ HexachordGraph
 
 .. autoclass:: HexachordGraph
     :members:
-    :undoc-members:
 
 
 GamutGraph
@@ -16,7 +15,6 @@ GamutGraph
 
 .. autoclass:: GamutGraph
     :members:
-    :undoc-members:
 
 
 RolloutGraph
@@ -24,4 +22,3 @@ RolloutGraph
 
 .. autoclass:: RolloutGraph
     :members:
-    :undoc-members:

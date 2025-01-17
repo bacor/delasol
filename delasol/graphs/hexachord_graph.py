@@ -22,19 +22,11 @@ class HexachordGraph(nx.DiGraph):
     A directed graph representing a hexachord.
 
     Nodes in the graph are Pitch objects and have the following attributes:
+
     - index (int): the zero-based index of the pitch in the hexachord (e.g. ut
       is 0, fa-super-la is 6)
     - name (string): the (globally) unique name of the node (e.g. "ut_C3", "re_F4", etc.)
     - syllable (string): the syllable of the hexachord (e.g. "ut", "re", etc.)
-
-    Attributes
-    ----------
-    base : Pitch
-        The base pitch of the hexachord.
-    fa_super_la : bool
-        Indicates whether the hexachord includes the fa super la.
-    pitches : list of Pitch
-        The list of pitches in the hexachord.
 
     Parameters
     ----------
@@ -67,6 +59,15 @@ class HexachordGraph(nx.DiGraph):
     <music21.pitch.Pitch F3>
     >>> hex.pitches
     [<music21.pitch.Pitch G2>, <music21.pitch.Pitch A2>, <music21.pitch.Pitch B2>, <music21.pitch.Pitch C3>, <music21.pitch.Pitch D3>, <music21.pitch.Pitch E3>, <music21.pitch.Pitch F3>]
+
+    Attributes
+    ----------
+    base : Pitch
+        The base pitch of the hexachord.
+    fa_super_la : bool
+        Indicates whether the hexachord includes the fa super la.
+    pitches : list of Pitch
+        The list of pitches in the hexachord.
     """
 
     def __init__(
