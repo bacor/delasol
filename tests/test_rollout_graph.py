@@ -12,7 +12,6 @@ import networkx as nx
 
 # Local imports
 from delasol.utils.music import as_pitch_list
-from delasol.styles import get_gamut
 from delasol.graphs.hexachord_graph import HexachordGraph
 from delasol.graphs.rollout_graph import RolloutGraph
 from delasol.solmizers.continental_16c import Continental16cSolmizer
