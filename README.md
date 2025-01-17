@@ -1,3 +1,5 @@
+[![Documentation Status](https://readthedocs.org/projects/delasol/badge/?version=latest)](https://delasol.readthedocs.io/en/latest/?badge=latest)
+
 # 🌞 Delasol — automatic hexachordal solmization
 
 **The Delasol project aims to develop methods for automatic hexachordal solmization. Currenty it supports sixteenth-century continental and English solmization styles.**
