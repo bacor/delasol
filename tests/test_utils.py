@@ -11,9 +11,7 @@ import matplotlib.pyplot as plt
 from delasol.utils.music import as_pitch_list
 from delasol.graphs.hexachord_graph import HexachordGraph
 from delasol.graphs.gamut_graph import GamutGraph
-from backup.solmization_graph_v2 import SolmizationGraph
 from delasol.utils.sequence import segment_deviations
-from delasol.styles.continental_16c import CONTINENTAL_MUTATIONS
 
 # Set matplotlib backend
 matplotlib.use("MacOSX")

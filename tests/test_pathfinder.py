@@ -10,8 +10,6 @@ import networkx as nx
 
 # Local imports
 from delasol.utils.music import as_pitch_list
-from delasol.styles import get_gamut
-from backup.solmization_graph_v2 import SolmizationGraph
 from delasol.graphs.rollout_graph import RolloutGraph
 from delasol.pathfinders.simple_pathfinder import SimplePathfinder
 from delasol.pathfinders.segmented_pathfinder import SegmentedPathfinder, SegmentsGraph

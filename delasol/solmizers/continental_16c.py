@@ -13,7 +13,6 @@ from delasol.graphs.gamut_graph import GamutGraph, register_gamut
 from delasol.graphs.hexachord_graph import HexachordGraph
 from delasol.graphs.rollout_graph import RolloutGraph
 from delasol.pathfinders.simple_pathfinder import SimplePathfinder
-from delasol.styles.continental_16c import CONTINENTAL_MUTATIONS
 from delasol.custom_types import GamutGraphNode
 from delasol.solmizers.solmizer import Solmizer, register_solmizer
 
