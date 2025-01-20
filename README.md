@@ -39,7 +39,7 @@ solmization.parse.draw()
 
 Delasol can directly annotate the solmizations as lyrics to a musical score, resulting in an output like the following:
 
-![alt text](figures/screenshot.png)
+![alt text](notebooks/figures/screenshot.png)
 
 Here is an example of how you can solmize multiple voices in a musicxml file:
 

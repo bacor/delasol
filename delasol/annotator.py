@@ -12,18 +12,18 @@ from music21.spanner import Line
 
 # Local imports
 from delasol.pathfinders.segmented_pathfinder import SegmentedPathfinder
-from delasol.evaluator import EvalResult
+from delasol.evaluator import EvalStatus, EvaluationResult
 
 
 EvalColors = {
-    EvalResult.CORRECT: "green",
-    EvalResult.INCORRECT: "red",
-    EvalResult.MISSING: "blue",
-    EvalResult.DELETION: "red",
-    EvalResult.INSERTION: "red",
-    EvalResult.SKIP: "grey",
+    EvalStatus.CORRECT: "green",
+    EvalStatus.INCORRECT: "red",
+    EvalStatus.MISSING: "blue",
+    EvalStatus.DELETION: "red",
+    EvalStatus.INSERTION: "red",
+    EvalStatus.SKIP: "grey",
 }
-"""Dict[EvalResult, str]: A dictionary mapping evaluation results to their corresponding colors."""
+"""Dict[EvalStatus, str]: A dictionary mapping evaluation results to their corresponding colors."""
 
 # TODO rename solmizer -> solmization?
 
@@ -60,7 +60,7 @@ class Annotator(ABC):
         music21 streams, so if you initialize a solmizer with a sequence of
         pitches, you cannot annotate them.
 
-    **kws : keyword arguments
+    **get_annotations_kws : keyword arguments
         Additional keyword arguments that are eventually passed to the method
         `get_annotations`, which is implemented by a subclass.
 
@@ -70,14 +70,15 @@ class Annotator(ABC):
         If the provided `solmizer` does not have a valid 'stream' attribute.
     """
 
-    def __init__(self, solmizer, **kws):
+    def __init__(self, solmizer, **get_annotations_kws):
         if not solmizer.stream:
             raise ValueError("Solmizer must have a stream")
         self.solmizer = solmizer
+        self.notes = self.solmizer.input
         self.stream = self.solmizer.stream
 
         # Keywords are passed on to get_annotations
-        self.__init_kws = kws
+        self.__init_kws = get_annotations_kws
 
     # Static methods
 
@@ -163,7 +164,7 @@ class Annotator(ABC):
     def get_annotations(self, notes, **kws) -> dict:
         raise NotImplemented
 
-    def annotate(self, notes=None, offset: int = None, **kws) -> dict:
+    def annotate(self, notes=None, offset: int = None, **get_annotations_kws) -> dict:
         """Annotate notes with specified annotations.
 
         Parameters
@@ -175,7 +176,7 @@ class Annotator(ABC):
             An integer value to offset the annotation numbers. If None, the
             offset is determined by the number of lyrics associated with the
             notes.
-        **kws : keyword arguments
+        **get_annotations_kws : keyword arguments
             Additional keyword arguments passed to the annotation retrieval
             function.
 
@@ -192,11 +193,11 @@ class Annotator(ABC):
         """
         # By default use all notes in the stream
         if notes is None:
-            notes = self.stream.flatten().notes
+            notes = self.notes
 
         # Get and validate all annotations
         kwargs = dict(**self.__init_kws)
-        kwargs.update(**kws)
+        kwargs.update(**get_annotations_kws)
         annotations = self.get_annotations(notes, **kwargs)
         if not len(notes) == len(annotations):
             raise ValueError(
@@ -296,17 +297,18 @@ class EvaluationAnnotator(Annotator):
     def get_annotations(
         self,
         notes,
+        evaluation: EvaluationResult = None,
         use_color: bool = True,
-        **eval_kws,
     ):
-        eval_kws.update(return_counts=False)
-        results, predictions = self.solmizer.evaluate(
-            return_predictions=True, **eval_kws
-        )
+        if evaluation is None:
+            raise ValueError(
+                "EvaluationAnnotator requires a results argument to annotate."
+            )
+        if not isinstance(evaluation, EvaluationResult):
+            raise ValueError("Results should be an EvaluationResult object.")
 
-        # Transform into annotations
         annotations = []
-        for pred, result in zip(predictions, results):
+        for pred, result in zip(evaluation.predictions, evaluation):
             annot = dict(text=pred)
             if use_color:
                 annot["color"] = EvalColors[result]

@@ -15,7 +15,7 @@ from delasol.utils.music import as_pitch_list, as_stream
 from delasol.solmizers.solmizer import solmize
 from delasol.solmizers.continental_16c import Continental16cSolmizer
 from delasol.solmizers.continental_16c import HardContinental16CenturyGamutGraph
-from delasol.evaluator import EvalResult
+from delasol.evaluator import EvalStatus
 from delasol.utils import as_stream
 
 CUR_DIR = os.path.dirname(__file__)
@@ -101,9 +101,12 @@ class TestContinental16cSolmizer(unittest.TestCase):
             stream.append(note)
             note.lyric = syll
         solmization = Continental16cSolmizer(stream)
-        solmization.annotate(
-            target_lyric_number=1, format="syllable_hexnum", subscript=True
-        )  # , show_weights=False)
+        results = solmization.evaluate(
+            target_lyric_number=1,
+            format="syllable_hexnum",
+            formatter_kws=dict(subscript=True),
+        )
+        solmization.annotate("evaluation", evaluation=results)
         targets = [f"{syll}₄" for syll in syllables]
         for note, target in zip(stream.flat.notes, targets):
             lyrics = {lyric.number: lyric for lyric in note.lyrics}
@@ -126,8 +129,8 @@ class TestIssues(unittest.TestCase):
         solmization = solmize(score, style="continental_16c")
         targets = ["la", "sol", "fa", "mi", "re"]
         self.assertListEqual(solmization.solmize(), targets)
-        results = solmization.evaluate(target_lyric_number=2, return_counts=True)
-        self.assertEqual(results[EvalResult.CORRECT], 5)
+        results = solmization.evaluate(target_lyric_number=2)
+        self.assertEqual(results.count("correct"), 5)
 
     # TODO this is a problem
     @unittest.skip
@@ -150,11 +153,11 @@ class TestIssues(unittest.TestCase):
     def test_evaluate_MdB001(self):
         score = converter.parse(f"{CUR_DIR}/scores/MdB001.musicxml")
         solmization = solmize(score, style="continental_16c")
-        results = solmization.evaluate(target_lyric_number=2, return_counts=True)
-        self.assertEqual(results[EvalResult.CORRECT], 62)
+        results = solmization.evaluate(target_lyric_number=2)
+        self.assertEqual(results.count("correct"), 62)
 
     def test_evaluate_MdB004(self):
         score = converter.parse(f"{CUR_DIR}/scores/MdB004.musicxml")
         solmization = solmize(score, style="continental_16c")
-        results = solmization.evaluate(target_lyric_number=2, return_counts=True)
-        self.assertEqual(results[EvalResult.CORRECT], 86)
+        results = solmization.evaluate(target_lyric_number=2)
+        self.assertEqual(results.count("correct"), 86)

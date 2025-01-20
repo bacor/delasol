@@ -23,7 +23,14 @@ class TestAnnotator(unittest.TestCase):
         targets = ["ut", "re", "fa", "mi", "ut"]
         solmizer = get_solmizer("continental_16c", input, key=0)
         solmizer.annotate("text", text=targets)
-        solmizer.annotate(targets=targets)
-        solmizer.annotate(targets=targets, rank=1)
-        solmizer.annotate(targets=targets, rank=2)
+
+        results = solmizer.evaluate(targets=targets)
+        solmizer.annotate("evaluation", evaluation=results)
+
+        results = solmizer.evaluate(targets=targets, rank=1)
+        solmizer.annotate("evaluation", evaluation=results)
+
+        results = solmizer.evaluate(targets=targets, rank=2)
+        solmizer.annotate("evaluation", evaluation=results)
+
         self.assertTrue(True)

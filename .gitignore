@@ -1,27 +1,22 @@
+# Cache etc
 __pycache__
 .ipynb_checkpoints
 .DS_Store
-*.zip
 .mscbackup
 .pytest_cache
 .vscode
 
+# The local python environment
+env/
+
+# Environment variables
+.env
+
+# Local directories
 figures/ignored
 tmp/
-env/
-tbr
 playground/
 excluded-notebooks/
-backup
 
+# Docs
 docs/build
-
-# Exclude output
-corpora/*/output
-# corpora/*/output/**
-# !corpora/*/output/latest/
-
-# Excluded corpora
-corpora/smith
-corpora/cantuscorpus
-

@@ -21,7 +21,7 @@ from delasol.pathfinders.pathfinder import Pathfinder
 from delasol.custom_types import GamutGraphPath
 from delasol.formatter import get_formatter
 from delasol.annotator import get_annotator
-from delasol.evaluator import Evaluator
+from delasol.evaluator import Evaluator, EvaluationResult
 
 
 class Solmizer(ABC):
@@ -152,7 +152,7 @@ class Solmizer(ABC):
         """
         return self.pathfinder.get_base_path(rank, inputs_only=True)
 
-    def solmize(self, rank=0, format="syllable", **kws) -> t.Iterable[str]:
+    def solmize(self, rank=0, format="syllable", **formatter_kws) -> t.Iterable[str]:
         """Solmization with a given rank and format.
 
         Parameters
@@ -161,7 +161,7 @@ class Solmizer(ABC):
             The rank of the solmization. Default is 0 (the best path).
         format : str, optional
             The format in which to return the solmization. Default is "syllable".
-        **kws : keyword arguments
+        **formatter_kws : keyword arguments
             Additional keyword arguments to be passed to the formatter.
 
         Returns
@@ -170,10 +170,75 @@ class Solmizer(ABC):
             A sequence of for example syllables, depending on the format.
         """
         path = self.solmization_path(rank)
-        formatter = get_formatter(format, self.gamut, **kws)
+        formatter = get_formatter(format, self.gamut, **formatter_kws)
         return formatter.format(path)
 
-    def annotate(self, annotator_name: str = None, **kws) -> t.Type["Annotator"]:
+    def evaluate(
+        self,
+        rank=0,
+        format="syllable",
+        targets: t.Iterable[str] = None,
+        target_notes: t.Iterable[Note] = None,
+        target_lyric_number: int = None,
+        formatter_kws: dict = {},
+        evaluator_kws: dict = {},
+    ) -> EvaluationResult:
+        """Evaluate the predicted syllables against the specified targets: the annotated syllables.
+
+        Parameters
+        ----------
+        rank : int, optional
+            The rank to use for evaluation. Default is 0.
+        format : str, optional
+            The format of the evaluation, default is "syllable".
+        targets : iterable of str, optional
+            The target lyrics to evaluate against. If None and
+            target_lyric_number is provided, targets will be extracted
+            from the specified target notes.
+        target_notes : iterable of Note, optional
+            The notes corresponding to the target lyrics. If None, all
+            input notes will be used.
+        target_lyric_number : int, optional
+            The specific lyric number to extract targets from if
+            targets is None.
+        formatter_kws : dict, optional
+            Additional keyword arguments for the formatter.
+        evaluator_kws : dict, optional
+            Additional keyword arguments for the evaluator: see :meth:`Evaluator.evaluate`
+
+        Returns
+        -------
+        results : EvaluationResult
+            The results of the evaluation.
+        """
+        if targets is None and target_lyric_number is None:
+            raise ValueError("Either targets or target_lyric_number must be provided.")
+
+        # Read out targets from lyrics if needdd
+        if targets is None and target_lyric_number is not None:
+            if target_notes is None:
+                target_notes = self.input
+            targets = extract_lyrics(target_notes, number=target_lyric_number)
+
+        # Raise an error if all targets are None
+        if all([t is None for t in targets]):
+            raise ValueError(
+                "No targets were found: all targets are None. Did you specify targets or targets_lyric_number correctly?"
+            )
+
+        # Get predictions
+        predictions = self.solmize(rank=rank, format=format, **formatter_kws)
+
+        # Evaluate
+        results = Evaluator.evaluate(
+            predictions=predictions, targets=targets, **evaluator_kws
+        )
+
+        return results
+
+    def annotate(
+        self, annotator_name: str = "solmization", **annotator_kws
+    ) -> t.Type["Annotator"]:
         """Annotate the stream using a particular annotator.
 
         Note that this method only works when the solmizer has been
@@ -183,62 +248,18 @@ class Solmizer(ABC):
         Parameters
         ----------
         name : str
-            The name of the annotator to be used for annotation. Default
-            to "solmization", unless either 'target' or 'target_lyric_num'
-            is specified; then the evaluation annotator is used.
-        **kws : keyword arguments
-            Additional keyword arguments to be passed to the annotator.
+            The name of the annotator to be used for annotation
+        **annotator_kws : keyword arguments
+            Additional keyword arguments to be passed to `annotator.annotate`.
 
         Returns
         -------
         Annotator
             An instance of the specified annotator
         """
-        # Default annotators
-        if annotator_name is None and "targets" in kws or "target_lyric_number" in kws:
-            annotator_name = "evaluation"
-        elif annotator_name is None:
-            annotator_name = "solmization"
-
         annotator = get_annotator(annotator_name, self)
-        annotator.annotate(**kws)
+        annotator.annotate(**annotator_kws)
         return annotator
-
-    def evaluate(
-        self,
-        rank=0,
-        format="syllable",
-        targets: t.Iterable[str] = None,
-        target_notes: t.Iterable[Note] = None,
-        target_lyric_number: int = None,
-        return_predictions: bool = False,
-        return_counts: bool = False,
-        use_editorial_suggestion: bool = False,
-        skip_uncertain: bool = False,
-        detect_insertions_deletions: bool = True,
-        **format_kws,
-    ):
-        # Read out targets from lyrics if needdd
-        if targets is None and target_lyric_number is not None:
-            if target_notes is None:
-                target_notes = self.input
-            targets = extract_lyrics(target_notes, number=target_lyric_number)
-
-        # Get evaluation
-        predictions = self.solmize(rank=rank, format=format, **format_kws)
-        results = Evaluator.evaluate(
-            predictions=predictions,
-            targets=targets,
-            return_counts=return_counts,
-            use_editorial_suggestion=use_editorial_suggestion,
-            skip_uncertain=skip_uncertain,
-            detect_insertions_deletions=detect_insertions_deletions,
-        )
-
-        if return_predictions:
-            return results, predictions
-        else:
-            return results
 
 
 ###############################################################################
@@ -248,8 +269,20 @@ class Solmizer(ABC):
 SOLMIZERS = {}
 
 
-# TODO documentation
 def register_solmizer(solmizer: Solmizer):
+    """Register a solmizer class.
+
+    Parameters
+    ----------
+    solmizer : Solmizer
+        A subclass of the Solmizer class that must have a 'name' attribute.
+
+    Raises
+    ------
+    ValueError
+        If the provided solmizer is not a subclass of Solmizer or if it does
+        not have a 'name' attribute.
+    """
     if not issubclass(solmizer, Solmizer):
         raise ValueError("The solmizer must be an instance of the Solmizer class")
     if not hasattr(solmizer, "name"):
@@ -259,6 +292,27 @@ def register_solmizer(solmizer: Solmizer):
 
 
 def get_solmizer(name, input, **kws) -> Solmizer:
+    """Get an instance of a Solmizer class based on the provided name.
+
+    Parameters
+    ----------
+    name : str
+        The name of the Solmizer class to instantiate.
+    input : Any
+        The input data to be processed by the Solmizer.
+    **kws : keyword arguments
+        Additional keyword arguments to be passed to the Solmizer class.
+
+    Returns
+    -------
+    Solmizer
+        An instance of the specified Solmizer class.
+
+    Raises
+    ------
+    ValueError
+        If the specified Solmizer class name is not found.
+    """
     solmizer_class = SOLMIZERS.get(name)
     if not solmizer_class:
         raise ValueError(f"Solmizer '{name}' not found.")

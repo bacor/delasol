@@ -4,6 +4,7 @@
 # Copyright © 2025 Bas Cornelissen
 # -------------------------------------------------------------------
 import typing as t
+from functools import cached_property
 from abc import ABC
 from enum import Enum
 from collections import Counter
@@ -16,7 +17,7 @@ from delasol.constants import SYLLABLES
 from delasol.utils.music import extract_lyrics
 
 
-class EvalResult(Enum):
+class EvalStatus(Enum):
     """Possible evaluation results.
 
     This enumeration defines the possible outcomes of evaluating a predicted
@@ -36,6 +37,104 @@ class EvalResult(Enum):
     DELETION = "deletion"
     INSERTION = "insertion"
     SKIP = "skip"
+
+
+class EvaluationResult(list):
+    """
+    Results of an evaluation.
+
+    An evaluation result is essentially a list with the EvalStatus
+    for every prediction, and behaves like a list. The predictions,
+    targets and options are stored as attributes, and there is a
+    method that returns a dictionary with the counts of each EvalStatus.
+
+    Parameters
+    ----------
+    *args : tuple
+        Individual evaluation results; pased to the list initializer.
+    predictions : array-like
+        The predicted values. Must not be None.
+    targets : array-like
+        The true values. Must not be None.
+    options : dict, optional
+        Additional options for configuration. Default is an empty dictionary.
+
+    Attributes
+    ----------
+    predictions : array-like
+        The predicted values.
+    targets : array-like
+        The true values.
+    options : dict
+        Options passed to the evaluator; stored for reference.
+
+    Raises
+    ------
+    ValueError
+        If predictions or targets are None.
+    """
+
+    def __init__(self, *args, predictions=None, targets=None, options={}):
+        if predictions is None:
+            raise ValueError("Predictions cannot be None")
+        self.predictions = predictions
+        if targets is None:
+            raise ValueError("Targets cannot be None")
+        self.targets = targets
+        self.options = options
+        super().__init__(*args)
+
+    @property
+    def counts(self) -> dict[EvalStatus, int]:
+        """Get the counts of each evaluation status.
+
+        This method counts the occurrences of each status in the current instance
+        and returns a dictionary mapping each `EvalStatus` to its corresponding
+        count.
+
+        Returns
+        -------
+        dict[EvalStatus, int]
+            A dictionary where the keys are instances of `EvalStatus` and the
+            values are the counts of each status.
+        """
+        counter = Counter(self)
+        return {status: counter[status] for status in EvalStatus}
+
+    def count(self, what: str) -> int:
+        """Count the occurrences of a specified status.
+
+        Parameters
+        ----------
+        what : str
+            The status to count, specified as a string. This will be converted to
+            uppercase to match the keys in the EvalStatus enumeration.
+
+        Returns
+        -------
+        int
+            The count of occurrences for the specified status.
+
+        Raises
+        ------
+        KeyError
+            If the provided status does not exist in the EvalStatus enumeration.
+        """
+        status = EvalStatus[what.upper()]
+        return self.counts[status]
+
+    def export(self):
+        counts_export = dict()
+        counts = self.counts
+        for name, const in EvalStatus.__members__.items():
+            counts_export[name.lower()] = counts[const]
+
+        return dict(
+            predictions=self.predictions,
+            targets=self.targets,
+            counts=counts_export,
+            options=self.options,
+        )
 
 
 class Evaluator(ABC):
@@ -159,10 +258,10 @@ class Evaluator(ABC):
     def evaluate_prediction(
         prediction: str,
         target: str,
-        use_editorial_suggestion: bool = False,
-        skip_uncertain: bool = False,
+        use_editorial_suggestion: bool = True,
+        skip_uncertain: bool = True,
         detect_insertions_deletions: bool = True,
-    ) -> EvalResult:
+    ) -> EvalStatus:
         """Evaluate the prediction against the target and return the evaluation result.
 
         Parameters
@@ -181,8 +280,8 @@ class Evaluator(ABC):
 
         Returns
         -------
-        Literal[EvalResult.CORRECT, EvalResult.INCORRECT, EvalResult.MISSING,
-                EvalResult.DELETION, EvalResult.INSERTION, EvalResult.SKIP]
+        Literal[EvalStatus.CORRECT, EvalStatus.INCORRECT, EvalStatus.MISSING,
+                EvalStatus.DELETION, EvalStatus.INSERTION, EvalStatus.SKIP]
             The result of the evaluation, indicating whether the prediction is
             correct, incorrect, missing, a deletion, an insertion, or should be skipped.
         """
@@ -190,44 +289,41 @@ class Evaluator(ABC):
         # If no target_annotation is given: an insertion
         if target is None and prediction is not None:
             return (
-                EvalResult.INSERTION
+                EvalStatus.INSERTION
                 if detect_insertions_deletions
-                else EvalResult.INCORRECT
+                else EvalStatus.INCORRECT
             )
 
         # Parse the annotated target syllable
         annot = Evaluator.parse_annotation(target)
         target_syllable = (
             annot["syllable_editor"]
-            if use_editorial_suggestion
+            if use_editorial_suggestion and annot["syllable_editor"]
             else annot["syllable_source"]
         )
 
         # Evaluate the type of error
         if annot["uncertain"] and skip_uncertain:
-            return EvalResult.SKIP
+            return EvalStatus.SKIP
         elif annot["uncertain"] and target_syllable is None:
-            return EvalResult.MISSING
+            return EvalStatus.MISSING
         elif prediction == target_syllable:
-            return EvalResult.CORRECT
+            return EvalStatus.CORRECT
         elif prediction == "" or prediction is None:
             return (
-                EvalResult.DELETION
+                EvalStatus.DELETION
                 if detect_insertions_deletions
-                else EvalResult.INCORRECT
+                else EvalStatus.INCORRECT
             )
         else:
-            return EvalResult.INCORRECT
+            return EvalStatus.INCORRECT
 
     @staticmethod
     def evaluate(
         predictions: t.Iterable[str],
         targets: t.Iterable[str] = None,
-        return_counts: bool = False,
-        use_editorial_suggestion: bool = False,
-        skip_uncertain: bool = False,
-        detect_insertions_deletions: bool = True,
-    ) -> t.Dict[str, int] | t.List[str]:
+        **evaluate_prediction_kws,
+    ) -> EvaluationResult:
         """Evaluate predictions against targets and return results.
 
         Parameters
@@ -237,17 +333,16 @@ class Evaluator(ABC):
         targets : Iterable[str], optional
             A collection of true values as strings. If provided, must have the
             same length as `predictions`. Default is None.
-        return_counts : bool, optional
-            If True, return a dictionary with counts of each unique result.
-            If False, return a list of results. Default is False.
-        **kws : keyword arguments
-            Additional keyword arguments passed to the evaluation function.
+        evaluate_prediction_kws : dict
+            Optional keyword arguments passed to `evaluate_prediction`. These
+            include `use_editorial_suggestion`, `skip_uncertain`, and `detect_insertions_deletions`.
 
         Returns
         -------
-        Dict[str, int] or List[str]
-            A dictionary of counts if `return_counts` is True, otherwise a list
-            of evaluation results.
+        EvaluationResult
+            A list of evaluation results for each prediction. Besides, the
+            EvaluationResult object contains the predictions, targets and
+            keyword arguments.
 
         Raises
         ------
@@ -257,21 +352,15 @@ class Evaluator(ABC):
         if len(predictions) != len(targets):
             raise ValueError("Predictions and targets should have the same length")
 
-        results = []
+        results = EvaluationResult(
+            predictions=predictions, targets=targets, options=evaluate_prediction_kws
+        )
         for prediction, target in zip(predictions, targets):
             result = Evaluator.evaluate_prediction(
-                prediction,
-                target,
-                use_editorial_suggestion=use_editorial_suggestion,
-                skip_uncertain=skip_uncertain,
-                detect_insertions_deletions=detect_insertions_deletions,
+                prediction, target, **evaluate_prediction_kws
             )
             results.append(result)
-
-        if return_counts:
-            return dict(Counter(results))
-        else:
-            return results
+        return results
 
 
 ########################## Registry ##########################
