@@ -1,0 +1,34 @@
+
+title: Test Corpus
+editor: Bas Cornelissen (b.j.m.cornelissen@uva.nl)
+license: CC BY-SA 4.0
+copyright: >
+  This work © 2024 by Bas Cornelissen is licensed under CC BY-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-sa/4.0/
+source: >
+  Clement Marot & Théodore de Bèze 1562
+comments: >
+  See README.md for details, including the transcription guidelines.
+
+# Technical specifications
+
+# solmization_style: continental
+
+lyric_lines: 
+  - original_text
+  - modernized_text
+  - syllables
+
+# evaluation:
+#   - target_lyrics: syllable
+#     prediction_style: syllable
+#     output_style: state-subscript
+
+# Contents
+
+works:
+  - id: MdB001
+    number: 1
+    title: Qui au conseil des malins n'a esté
+  - id: MdB002
+    number: 2
+    title: Pourquoy sont bruit et s'assemblent les gens?
