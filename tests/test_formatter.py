@@ -59,3 +59,29 @@ class TestFormatter(unittest.TestCase):
     def test_davantes(self):
         # TODO implement
         pass
+
+    def test_mutation_formatter(self):
+        seq = "ut_G2 re_G2 mi_G2 fa_G2 sol_G2 re_C3 mi_C3"
+        gamut = GamutGraph(["G2", "C3"])
+        fmt = get_formatter("mutation", gamut)
+        output = fmt.format_names(seq)
+        self.assertListEqual(output, ["ut", None, None, None, None, "sol/re", None])
+
+        fmt2 = get_formatter("mutation", gamut)
+        output2 = fmt2.format_names(
+            seq,
+            format="syllable_hexnum",
+            mutation=" —> ",
+            formatter_kws=dict(subscript=False),
+        )
+        self.assertListEqual(
+            output2, ["ut1", None, None, None, None, "sol1 —> re2", None]
+        )
+
+        fmt3 = get_formatter("mutation", gamut)
+        output3 = fmt3.format_names("fa_C3 mi_C3 sol_G2 fa_G2 mi_G2")
+        self.assertListEqual(output3, ["fa", None, "re/sol", None, None])
+
+        fmt4 = get_formatter("mutation", gamut)
+        output3 = fmt3.format_names("fa_C3 mi_C3 re_G2 mi_G2")
+        self.assertListEqual(output3, ["fa", None, "?/re", None])

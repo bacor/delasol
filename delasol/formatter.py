@@ -366,7 +366,7 @@ class HexachordNumberFormatter(Formatter):
     >>> gamut = GamutGraph(["G2", "C3", "B-2"])
     >>> fmt = get_formatter('syllable_hexnum', gamut)
     >>> fmt.format_names("ut_G2 mi_G2 re_C3 fa_C3")
-    ['ut1', 'mi1', 're2', 'fa2']
+    ['ut₁', 'mi₁', 're₂', 'fa₂']
 
     For hexachords without a number, the base name is used:
 
@@ -468,3 +468,89 @@ class DavantesFormatter(Formatter):
 
 
 register_formatter(DavantesFormatter)
+
+
+class MutationFormatter(Formatter):
+    """
+    Format a solmization path by only solmizing points of mutation,
+    in a style similar to Tinctoris.
+
+    At a point of mutation, the formatter will show both the syllable in the
+    previous and the new hexachord: 'sol/re' will for example indicate that
+    this pitch was 'sol' in the previous hexachord and 're' in the new one.
+
+    Parameters
+    ----------
+    path : GamutGraphPath
+        The path to be formatted, represented as a sequence of nodes.
+    format : str, optional
+        The formatter to use for labelling the nodes. Default is 'syllable'.
+    mutation : str, optional
+        The string used to indicate a mutation between nodes. Default is '/'.
+    missing : str, optional
+        The string to use when a node is missing. Default is '?'.
+    formatter_kws : dict, optional
+        Additional keyword arguments to pass to the formatter.
+
+    Returns
+    -------
+    list[str]
+        A list of formatted strings representing the path, with mutations
+        indicated as specified.
+
+    Examples
+    --------
+    >>> gamut = GamutGraph(["G2", "C3"])
+    >>> fmt = get_formatter('mutation', gamut)
+    >>> fmt.format_names("ut_G2 mi_G2 fa_G2 sol_G2 re_C3 mi_C3")
+    ['ut', None, None, None, 'sol/re', None]
+
+    You can tweak the mutation string and the format of the nodes:
+    >>> fmt.format_names("ut_G2 mi_G2 fa_G2 sol_G2 re_C3 mi_C3", mutation=" -> ", format="syllable_hexnum", formatter_kws=dict(subscript=False))
+    ['ut1', None, None, None, 'sol1 -> re2', None]
+
+    Note that when mutating in a large jump, it may not be possible to solmize
+    the pitch in the previous hexachord. In that case, the formatter will use
+    a special `missing='?'` token to indicate the missing note:
+
+    >>> fmt.format_names("fa_C3 mi_C3 re_G2 mi_G2")
+    ['fa', None, '?/re', None]
+
+    """
+
+    name = "mutation"
+
+    def format_path(
+        self,
+        path: GamutGraphPath,
+        format: str = "syllable",
+        mutation: str = "/",
+        missing: str = "?",
+        formatter_kws: dict = {},
+    ) -> list[str]:
+        # 'Subformatter' used to output node names
+        formatter = get_formatter(format, self.gamut)
+        fmt = lambda node: formatter.format([node], **formatter_kws)[0]
+
+        # Go through the path, and only output labels whenever there is a
+        # mutation between hexachords
+        start = fmt(path[0])
+        output = [start]
+        for prev, cur in zip(path[:-1], path[1:]):
+            if prev[0] != cur[0]:
+
+                # If the same pitch can also be found in the previous hexachord,
+                # format that note. Otherwise, use ?
+                if (prev[0], cur[1]) in self.gamut:
+                    old = fmt((prev[0], cur[1]))
+                else:
+                    old = missing
+                new = fmt(cur)
+                output.append(f"{old}{mutation}{new}")
+            else:
+                output.append(None)
+
+        return output
+
+
+register_formatter(MutationFormatter)
