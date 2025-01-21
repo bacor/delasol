@@ -46,3 +46,24 @@ class TestAnnotator(unittest.TestCase):
             solmizer.input[0].editorial,
             {"foo_solmization": "ut", "foo_status": EvalStatus.CORRECT},
         )
+
+    def test_segment_annotator(self):
+        input = as_stream("B3 D4 F4 D4 B3 D4 F4")
+        solmizer = get_solmizer("continental_16c_segmented", input, key=0)
+        solmizer.annotate("segments")
+
+        # Find all lines, sorted by offset of the first note
+        lines = solmizer.stream.recurse(classFilter="Line")
+        lines = sorted(lines, key=lambda line: line.getFirst().offset)
+        self.assertEqual(len(lines), 4)
+        # 1st segment
+        self.assertIn(input[0], lines[0])
+        # 2nd segment
+        # self.assertIn(input[1], lines[1])
+        # self.assertIn(input[2], lines[1])
+        # # 3rd segment
+        # self.assertIn(input[3], lines[2])
+        # self.assertIn(input[4], lines[2])
+        # # 4th segment
+        # self.assertIn(input[5], lines[3])
+        # self.assertIn(input[6], lines[3])

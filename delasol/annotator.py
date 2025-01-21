@@ -434,10 +434,13 @@ class TextAnnotator(Annotator):
 register_annotator(TextAnnotator)
 
 
-class SegmentAnnotator(Annotator):
-    # TODO TEST
+class SegmentsAnnotator(Annotator):
+    """Annotates the segments when using a SegmentedPathfinder
+    by adding a dashed line over all notes in a segment. Only works
+    if the solmizer uses a SegmentedPathfinder.
+    """
 
-    name = "segment"
+    name = "segments"
 
     def __init__(self, solmizer):
         if not isinstance(solmizer.pathfinder, SegmentedPathfinder):
@@ -451,8 +454,17 @@ class SegmentAnnotator(Annotator):
         line.lineType = "dotted"
         self.stream.insert(0, line)
 
-    def annotate_segments(self, segments):
-        raise NotImplemented
+    def annotate(self, notes=None, **kws):
+        if notes is None:
+            notes = self.notes
+
+        pathfinder = self.solmizer.pathfinder
+        input_times = self.solmizer.rollout.input_timesteps
+        for segment in pathfinder.segments:
+            segment_times = range(segment.start, segment.end + 1)
+            intersect = [t for t in segment_times if t in input_times]
+            if len(intersect) > 0:
+                self.annotate_segment([notes[input_times.index(t)] for t in intersect])
 
 
-register_annotator(SegmentAnnotator)
+register_annotator(SegmentsAnnotator)

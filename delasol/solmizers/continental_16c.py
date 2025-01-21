@@ -13,6 +13,7 @@ from delasol.graphs.gamut_graph import GamutGraph, register_gamut
 from delasol.graphs.hexachord_graph import HexachordGraph
 from delasol.graphs.rollout_graph import RolloutGraph
 from delasol.pathfinders.simple_pathfinder import SimplePathfinder
+from delasol.pathfinders.segmented_pathfinder import SegmentedPathfinder
 from delasol.custom_types import GamutGraphNode
 from delasol.solmizers.solmizer import Solmizer, register_solmizer
 
@@ -147,3 +148,13 @@ class Continental16cSolmizer(Solmizer):
 
 
 register_solmizer(Continental16cSolmizer)
+
+
+class Continental16cSegmentedSolmizer(Continental16cSolmizer):
+    name = "continental_16c_segmented"
+
+    def get_pathfinder(self, rollout, **kws):
+        return SegmentedPathfinder(rollout, **kws)
+
+
+register_solmizer(Continental16cSegmentedSolmizer)
