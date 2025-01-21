@@ -25,8 +25,6 @@ EvalColors = {
 }
 """Dict[EvalStatus, str]: A dictionary mapping evaluation results to their corresponding colors."""
 
-# TODO rename solmizer -> solmization?
-
 
 class Annotator(ABC):
     """Abstract annotator class.
@@ -38,9 +36,11 @@ class Annotator(ABC):
     multiple annotators working on it. One may for example annotate predicted
     syllables, another may show the segments (when using a segmented pathfinder).
 
-    Subclasses only need to implement the `get_annotations` method, which takes
-    a sequence of notes in the stream, and should return a list of annotations
-    of the following form:
+    Subclasses only need to implement `get_lyric_annotations`, `get_editorial_annotations`,
+    or both. Both methods should have the same signature and take a sequence of notes
+    plus possible keyword arguments. They should return a list of dictionaries
+    describing how the notes are annotated. For lyric annotations, that for example
+    should have the following form:
 
     .. code-block:: python
 
@@ -50,8 +50,11 @@ class Annotator(ABC):
             # ...
 
 
-    Basically, an annotation contains keywords passed to the `annotate_note`
+    Basically, these annotations contain keywords passed to the `annotate_note`
     method: possibly text, possibly a color, possibly the lyrics line number.
+    For the editorial annotations, the dictionary can contain whatever keys
+    you would like to store. You can additionally specify a `key_prefix` that will
+    be prefixed to the key, which may be useful when using multiple annotators.
 
     Parameters
     ----------
@@ -60,25 +63,18 @@ class Annotator(ABC):
         music21 streams, so if you initialize a solmizer with a sequence of
         pitches, you cannot annotate them.
 
-    **get_annotations_kws : keyword arguments
-        Additional keyword arguments that are eventually passed to the method
-        `get_annotations`, which is implemented by a subclass.
-
     Raises
     ------
     ValueError
         If the provided `solmizer` does not have a valid 'stream' attribute.
     """
 
-    def __init__(self, solmizer, **get_annotations_kws):
+    def __init__(self, solmizer):
         if not solmizer.stream:
             raise ValueError("Solmizer must have a stream")
         self.solmizer = solmizer
         self.notes = self.solmizer.input
         self.stream = self.solmizer.stream
-
-        # Keywords are passed on to get_annotations
-        self.__init_kws = get_annotations_kws
 
     # Static methods
 
@@ -104,8 +100,11 @@ class Annotator(ABC):
         return num_lyrics
 
     @staticmethod
-    def annotate_note(
-        note: Note, text: str = None, color: str = None, lyric_number: int = 1
+    def annotate_note_lyrics(
+        note: Note,
+        text: str = None,
+        color: str = None,
+        lyric_number: int = 1,
     ) -> None:
         """Annotate a musical note with optional text and color.
 
@@ -131,6 +130,13 @@ class Annotator(ABC):
         if color is not None:
             if lyric_number in lyrics:
                 lyrics[lyric_number].style.color = color
+
+    @staticmethod
+    def annotate_note_editorial(
+        note: Note, key_prefix: str = "", **annotations
+    ) -> None:
+        for key, value in annotations.items():
+            note.editorial.__setitem__(f"{key_prefix}{key}", value)
 
     @staticmethod
     def set_lyrics_color(
@@ -160,11 +166,103 @@ class Annotator(ABC):
 
     # Annotations
 
-    @abstractmethod
-    def get_annotations(self, notes, **kws) -> dict:
-        raise NotImplemented
+    def get_lyric_annotations(self, notes, **kws) -> t.Iterable[dict] | bool:
+        """Get lyric annotations for the given notes.
 
-    def annotate(self, notes=None, offset: int = None, **get_annotations_kws) -> dict:
+        These annotations are stored in the lyrics object of the note. The
+        function should be implemented by an inheriting class and return a list
+        of dictionaries; see the main class for detials.
+
+        Parameters
+        ----------
+        notes : iterable
+            A collection of notes for which to retrieve lyric annotations.
+        **kws : keyword arguments
+            Additional parameters to customize the behavior of the function.
+
+        Returns
+        -------
+        iterable of dict or bool
+            A generator yielding dictionaries containing lyric annotations for each
+            note, or False if the lyrics should not be annotated.
+        """
+        return False
+
+    def get_editorial_annotations(self, notes, **kws) -> t.Iterable[dict] | bool:
+        """Get editorial annotations based on provided notes.
+
+        This method should be implemented by an inheriting class; see main class
+        for details.
+
+        Parameters
+        ----------
+        notes : iterable
+            A collection of notes to be processed for annotations.
+        **kws : keyword arguments
+            Additional parameters that may influence the annotation process.
+
+        Returns
+        -------
+        iterable of dict or bool
+            Returns an iterable of dictionaries containing editorial annotations
+            if successful, or False if no editorial annotations should be added.
+        """
+        return False
+
+    def _annotate_lyrics(
+        self,
+        notes,
+        annotations,
+        offset: int = None,
+    ) -> dict:
+
+        # Validate all annotations
+        if not len(notes) == len(annotations):
+            raise ValueError(
+                "The number of notes should match the number of annotations."
+            )
+        if not isinstance(annotations[0], dict):
+            raise ValueError("Annotations should be an iterable of dictionaries")
+
+        # Update the offset for all annotations
+        if offset is None:
+            offset = self.num_lyrics(notes)
+        for annot in annotations:
+            annot["lyric_number"] = annot.get("lyric_number", 1) + offset
+
+        # Annotate
+        for note, annotation in zip(notes, annotations):
+            self.annotate_note_lyrics(note, **annotation)
+
+    def _annotate_editorial(
+        self,
+        notes,
+        annotations,
+        key_prefix: str = "",
+    ) -> dict:
+        if not len(notes) == len(annotations):
+            raise ValueError(
+                "The number of notes should match the number of annotations."
+            )
+        if not isinstance(annotations[0], dict):
+            raise ValueError("Annotations should be an iterable of dictionaries")
+
+        # Update the offset for all annotations
+        for annot in annotations:
+            annot["key_prefix"] = annot.get("key_prefix", key_prefix)
+
+        for note, annotation in zip(notes, annotations):
+            self.annotate_note_editorial(note, **annotation)
+
+        return annotations
+
+    def annotate(
+        self,
+        notes=None,
+        offset: int = None,
+        key_prefix: str = "",
+        **annotation_kws,
+    ) -> dict:
         """Annotate notes with specified annotations.
 
         Parameters
@@ -176,7 +274,7 @@ class Annotator(ABC):
             An integer value to offset the annotation numbers. If None, the
             offset is determined by the number of lyrics associated with the
             notes.
-        **get_annotations_kws : keyword arguments
+        **annotation_kws : keyword arguments
             Additional keyword arguments passed to the annotation retrieval
             function.
 
@@ -195,28 +293,15 @@ class Annotator(ABC):
         if notes is None:
             notes = self.notes
 
-        # Get and validate all annotations
-        kwargs = dict(**self.__init_kws)
-        kwargs.update(**get_annotations_kws)
-        annotations = self.get_annotations(notes, **kwargs)
-        if not len(notes) == len(annotations):
-            raise ValueError(
-                "The number of notes should match the number of annotations."
-            )
-        if not isinstance(annotations[0], dict):
-            raise ValueError("Annotations should be an iterable of dictionaries")
+        # Annotate the lyrics
+        lyric_annot = self.get_lyric_annotations(notes, **annotation_kws)
+        if lyric_annot is not False:
+            self._annotate_lyrics(notes, lyric_annot, offset=offset)
 
-        # Update the offset for all annotations
-        if offset is None:
-            offset = self.num_lyrics(notes)
-        for annot in annotations:
-            annot["lyric_number"] = annot.get("lyric_number", 1) + offset
-
-        # Go!
-        for note, annotation in zip(notes, annotations):
-            self.annotate_note(note, **annotation)
-
-        return annotations
+        # Annotate editorial information
+        editorial_annot = self.get_editorial_annotations(notes, **annotation_kws)
+        if editorial_annot is not False:
+            self._annotate_editorial(notes, editorial_annot, key_prefix=key_prefix)
 
 
 ########################## Registry ##########################
@@ -283,9 +368,13 @@ def get_annotator(name: str, solmizer: "Solmizer", **kws) -> Annotator:
 class SolmizationAnnotator(Annotator):
     name = "solmization"
 
-    def get_annotations(self, notes, **kws):
+    def get_lyric_annotations(self, notes, predictions=None, **kws):
         predictions = self.solmizer.solmize(**kws)
         return [dict(text=pred) for pred in predictions]
+
+    def get_editorial_annotations(self, notes, **kws):
+        # Note that this does not annotate the editorial data
+        return False
 
 
 register_annotator(SolmizationAnnotator)
@@ -294,7 +383,7 @@ register_annotator(SolmizationAnnotator)
 class EvaluationAnnotator(Annotator):
     name = "evaluation"
 
-    def get_annotations(
+    def get_lyric_annotations(
         self,
         notes,
         evaluation: EvaluationResult = None,
@@ -315,6 +404,22 @@ class EvaluationAnnotator(Annotator):
             annotations.append(annot)
         return annotations
 
+    def get_editorial_annotations(
+        self, notes, evaluation: EvaluationResult = None, **kws
+    ):
+        if evaluation is None:
+            raise ValueError(
+                "EvaluationAnnotator requires a results argument to annotate."
+            )
+        if not isinstance(evaluation, EvaluationResult):
+            raise ValueError("Results should be an EvaluationResult object.")
+
+        annotations = []
+        for pred, result in zip(evaluation.predictions, evaluation):
+            annot = dict(solmization=pred, status=result)
+            annotations.append(annot)
+        return annotations
+
 
 register_annotator(EvaluationAnnotator)
 
@@ -322,7 +427,7 @@ register_annotator(EvaluationAnnotator)
 class TextAnnotator(Annotator):
     name = "text"
 
-    def get_annotations(self, notes, text: t.Iterable[str], **kws):
+    def get_lyric_annotations(self, notes, text: t.Iterable[str], **kws):
         return [dict(text=t, **kws) for t in text]
 
 

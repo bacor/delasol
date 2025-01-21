@@ -9,6 +9,7 @@ import unittest
 from delasol.utils.music import as_pitch_list, as_stream
 from delasol.annotator import get_annotator
 from delasol.solmizers.solmizer import get_solmizer
+from delasol.evaluator import EvalStatus
 
 
 class TestAnnotator(unittest.TestCase):
@@ -34,3 +35,14 @@ class TestAnnotator(unittest.TestCase):
         solmizer.annotate("evaluation", evaluation=results)
 
         self.assertTrue(True)
+
+    def test_editorial(self):
+        input = as_stream("G3 A3 C4 B3 G3")
+        targets = ["ut", "re", "fa", "mi", "ut"]
+        solmizer = get_solmizer("continental_16c", input, key=0)
+        results = solmizer.evaluate(targets=targets)
+        solmizer.annotate("evaluation", evaluation=results, key_prefix="foo_")
+        self.assertDictEqual(
+            solmizer.input[0].editorial,
+            {"foo_solmization": "ut", "foo_status": EvalStatus.CORRECT},
+        )
