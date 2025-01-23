@@ -65,3 +65,5 @@ autodoc_type_aliases = {
     # "GamutGraphNode": "GamutGraphNode",
     # "RolloutGraphNode": "RolloutGraphNode",
 }
+
+toc_object_entries_show_parents = "hide"
