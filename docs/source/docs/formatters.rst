@@ -14,3 +14,7 @@ Formatters
 
 .. autoclass:: delasol.formatter.HexachordNumberFormatter
 
+.. autoclass:: delasol.formatter.MutationFormatter
+
+.. autoclass:: delasol.formatter.DavantesFormatter
+

@@ -18,3 +18,11 @@ Abstract Solmizer
     :undoc-members:
 
 
+16th-century English Solmizer
+-------------------------------
+
+.. autoclass:: delasol.solmizers.english_16c.English16cSolmizer
+    :members:
+    :undoc-members:
+
+
