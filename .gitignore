@@ -20,3 +20,7 @@ excluded-notebooks/
 
 # Docs
 docs/build
+
+# Ignore test output
+tests/test_collection/output
+tests/test_collection/pdf
