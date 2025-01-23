@@ -20,18 +20,6 @@ class GamutGraph(nx.DiGraph):
     """
     A graph representing a gamut of hexachords.
 
-    Parameters
-    ----------
-    hexachords : Iterable[Union[HexachordGraph, PitchLike]], optional
-        An iterable of hexachords, that can be specified by a HexachordGraph
-        or a PitchLike object representing the base of the hexachord.
-        If None, the instance will start with an empty set of hexachords.
-    mutations : dict, optional
-        A dictionary of mutations to apply to the hexachords. If None, no
-        mutations will be applied.
-    mutation_weight : float, optional
-        The weight to apply to the mutations. Default is 2.
-
     Examples
     --------
     >>> H1 = HexachordGraph("G2")
@@ -43,6 +31,18 @@ class GamutGraph(nx.DiGraph):
 
     >>> GamutGraph(["G2", "C3"])
     <GamutGraph hexachords=[G2, C3]>
+
+    Parameters
+    ----------
+    hexachords
+        An iterable of hexachords, that can be specified by a HexachordGraph
+        or a PitchLike object representing the base of the hexachord.
+        If None, the instance will start with an empty set of hexachords.
+    mutations
+        A dictionary of mutations to apply to the hexachords. If None, no
+        mutations will be applied.
+    mutation_weight
+        The weight to apply to the mutations. Default is 2.
 
 
     Attributes
@@ -80,13 +80,8 @@ class GamutGraph(nx.DiGraph):
 
     @cached_property
     def name_to_node(self) -> dict[str, GamutGraphNode]:
-        """A dictionary mapping node names to the actual nodes in the graph.
-
-        Returns
-        -------
-        dict[str, GamutGraphNode]
-            A dictionary where the keys are node names (strings) and
-            the values are the corresponding GamutGraphNode objects.
+        """A dictionary in which the keys are node names (strings) and
+        the values are the corresponding GamutGraphNode objects.
 
         Examples
         --------
@@ -100,13 +95,8 @@ class GamutGraph(nx.DiGraph):
 
     @cached_property
     def pitch_to_node(self) -> dict[Pitch, list[GamutGraphNode]]:
-        """A dictionary mapping pitches to the corresponding nodes in the graph.
-
-        Returns
-        -------
-        dict[Pitch, list[GamutGraphNode]]
-            A dictionary where the keys are unique Pitch objects and the values
-            are lists of GamutGraphNode instances associated with each pitch.
+        """A dictionary in which the keys are unique Pitch objects and the values
+        are lists of GamutGraphNode instances associated with each pitch.
 
         Examples
         --------
@@ -122,14 +112,13 @@ class GamutGraph(nx.DiGraph):
         return pitches
 
     @property
-    def names(self):
+    def names(self) -> list[str]:
         """A list of node names"""
         return list(self.name_to_node.keys())
 
     @property
-    def pitches(self):
-        """The list of pitches.
-
+    def pitches(self) -> list[Pitch]:
+        """The list of pitches found in the graph.
         Note that the order corresponds to the order in self.nodes, and so
         the pitches may not be sorted by pitch."""
         return list(self.pitch_to_node.keys())
@@ -137,11 +126,6 @@ class GamutGraph(nx.DiGraph):
     @property
     def first_hexachord(self) -> HexachordGraph:
         """The first registered hexachord according to its base pitch.
-
-        Returns
-        -------
-        HexachordGraph
-            The first hexachord in the gamut.
 
         Examples
         --------
@@ -155,11 +139,6 @@ class GamutGraph(nx.DiGraph):
     def last_hexachord(self) -> HexachordGraph:
         """The last registered hexachord according to its base pitch.
 
-        Returns
-        -------
-        HexachordGraph
-            The last hexachord in the gamut.
-
         Examples
         --------
         >>> gamut = GamutGraph(["G3", "F3"])
@@ -170,46 +149,32 @@ class GamutGraph(nx.DiGraph):
 
     @property
     def lowest_node(self) -> GamutGraphNode:
-        """The lowest node of the graph: the lowest pitch of the first
+        """The lowest node of the graph. This is the lowest pitch of the first
         hexachord, where hexachords are sorted according to their base pitch.
-
-        Returns
-        -------
-        GamutGraphNode
-            The lowest node of the graph
         """
         hex = self.first_hexachord
         return (hex.base, hex.pitches[0])
 
     @property
     def highest_node(self) -> GamutGraphNode:
-        """The highest node of the graph: the highest pitch of the last
+        """The highest node of the graph. This is the highest pitch of the last
         hexachord, where hexachords are sorted according to their base pitch.
-
-        Returns
-        -------
-        GamutGraphNode
-            The lowest node of the graph
         """
         hex = self.last_hexachord
         return (hex.base, hex.pitches[-1])
 
     @cached_property
     def overlapping_hexachords(self) -> dict[HexachordGraph, list[HexachordGraph]]:
-        """Dictionary identifying overlapping hexachords.
-
-        This method identifies hexachords that share common pitches and returns a
+        """Identifies hexachords that share common pitches and returns a
         dictionary where each key is a hexachord and the corresponding value is a
         list of hexachords that overlap with it.
-
-        Returns
-        -------
-        dict[HexachordGraph, list[HexachordGraph]]
-            A dictionary mapping each hexachord to a list of hexachords that
-            share pitches with it. If the overlapping hexachords have already been
-            computed, the cached result is returned.
+        Returns a dictionary mapping each hexachord to a list of hexachords that
+        share pitches with it. If the overlapping hexachords have already been
+        computed, the cached result is returned.
 
         Examples
+        --------
+
         >>> gamut = GamutGraph(["G2", "C3", "C4"])
         >>> gamut.overlapping_hexachords
         {<HexachordGraph on G2>: [<HexachordGraph on C3>], <HexachordGraph on C3>: [<HexachordGraph on G2>], <HexachordGraph on C4>: []}
@@ -228,6 +193,21 @@ class GamutGraph(nx.DiGraph):
     # Building methods
 
     def add_hexachord(self, hexachord: t.Union[HexachordGraph, PitchLike]) -> None:
+        """Add a hexachord to the gamut graph.
+
+        Parameters
+        ----------
+        hexachord
+            The hexachord to be added. This can be a string representation of a
+            hexachord, a Pitch object, or an instance of HexachordGraph. If a
+            string or Pitch is provided, it will be converted to a HexachordGraph.
+
+        Raises
+        ------
+        ValueError
+            If the provided hexachord is invalid or if a hexachord with the same
+            base has already been added to the gamut graph.
+        """
         if isinstance(hexachord, str) or isinstance(hexachord, Pitch):
             hexachord = HexachordGraph(hexachord)
         elif not isinstance(hexachord, HexachordGraph):
@@ -265,11 +245,11 @@ class GamutGraph(nx.DiGraph):
 
         Parameters
         ----------
-        source : str
+        source
             The name of the source node
-        target : str
+        target
             The name of the target node
-        weight : float, optional
+        weight
             The weight to use for the edge
 
         Examples
@@ -285,7 +265,6 @@ class GamutGraph(nx.DiGraph):
 
     def add_mutations(self, mutations, default_weight: float = 2):
         """Add mutations between hexachords based on hexachord qualities and direction.
-
         The mutations list specifies each mutation as a dictionary that
         indicates the source hexachord, target hexachord, direction of movement
         (e.g. moving from natural _up_ to a hard hexachord), and finally the
@@ -310,29 +289,6 @@ class GamutGraph(nx.DiGraph):
                 dict(source="soft", dir="up", target="natural", moves=[("sol", "re")]),
                 dict(source="soft", dir="down", target="natural", moves=[("fa", "la")]),
             ]
-
-        Parameters
-        ----------
-        mutations : list of dict
-            A list of mutation dictionaries, where each dictionary contains the
-            following keys:
-                - 'source' : The quality of the source hexachord ('soft', 'hard', or 'natural').
-                - 'target' : The quality of the target hexachord ('soft', 'hard', or 'natural').
-                - 'dir' : The direction of the mutation ('up' or 'down').
-                - 'moves' : A list of moves associated with the mutation, where each
-                  move is a tuple of the form `(source_syll, target_syll, optional_weight)`:
-                  for example, `('sol', 're', 3)` specifies a move from the sol in the source
-                  hexachord to the re in the target hexachord, and assigns the mutation
-                  weight 3. If the weight is omitted, the default_weight is used.
-
-        default_weight : float, optional
-            The default weight to assign to edges if not specified in the moves.
-            Defaults to 2.
-
-        Returns
-        -------
-        None
-            This function modifies the gamut graph directly
 
         Examples
         ------
@@ -361,6 +317,27 @@ class GamutGraph(nx.DiGraph):
         True
         >>> G[fa_C3][la_G2]
         {'weight': 10}
+
+
+        Parameters
+        ----------
+        mutations
+            A list of mutation dictionaries, where each dictionary contains the
+            following keys:
+
+            - 'source' : The quality of the source hexachord ('soft', 'hard', or 'natural').
+            - 'target' : The quality of the target hexachord ('soft', 'hard', or 'natural').
+            - 'dir' : The direction of the mutation ('up' or 'down').
+            - 'moves' : A list of moves associated with the mutation, where each
+            move is a tuple of the form :py:`(source_syll, target_syll, optional_weight)`:
+            for example, :py:`('sol', 're', 3)` specifies a move from the sol in the source
+            hexachord to the re in the target hexachord, and assigns the mutation
+            weight 3. If the weight is omitted, the default_weight is used.
+
+        default_weight
+            The default weight to assign to edges if not specified in the moves.
+            Defaults to 2.
+
         """
         for source in self.hexachords.values():
             for target in self.overlapping_hexachords[source]:
@@ -381,7 +358,25 @@ class GamutGraph(nx.DiGraph):
 
     # Utilities
 
-    def get_node(self, name=None, pitch=None):
+    def get_node(self, name: str = None, pitch: Pitch = None) -> GamutGraphNode:
+        """Retrieve a node from the graph based on the specified name or pitch.
+
+        Parameters
+        ----------
+        name
+            The name of the node to retrieve. If provided, the function will
+            return the corresponding node from the name-to-node mapping.
+
+        pitch
+            The pitch of the node to retrieve. If provided, the function will
+            return the corresponding node from the pitch-to-node mapping.
+
+        Raises
+        ------
+        KeyError
+            If the specified name or pitch does not exist in the respective
+            mappings.
+        """
         if name:
             return self.name_to_node[name]
         elif pitch:
@@ -397,33 +392,29 @@ class GamutGraph(nx.DiGraph):
         offset_y: float = 0,
     ) -> dict[GamutGraphNode, tuple[float, float]]:
         """Calculate positions for the nodes that can be used for
-        plotting the graph.
+        plotting the graph. Returns a dictionary mapping each
+        (base, pitch) pair to its corresponding (x, y) position as a tuple of floats.
+
 
         Parameters
         ----------
-        pos_x : {'order', 'diatonic', 'ps'}, optional
+        pos_x
             The method to determine the x-coordinate of the position.
             'order' uses the index of the pitch in the hexachord,
             'diatonic' uses the diatonic note number, and 'ps' uses
             the pitch class. Default is 'diatonic'.
 
-        pos_y : {'order', 'diatonic', 'ps'}, optional
+        pos_y
             The method to determine the y-coordinate of the position.
             'order' uses the index of the hexachord, 'diatonic' uses
             the diatonic note number of the base pitch, and 'ps' uses
             the pitch class of the base pitch. Default is 'order'.
 
-        offset_x : float, optional
+        offset_x
             An offset to be added to the x-coordinate. Default is 0.
 
-        offset_y : float, optional
+        offset_y
             An offset to be added to the y-coordinate. Default is 0.
-
-        Returns
-        -------
-        dict[GamutGraphNode, tuple[float, float]]
-            A dictionary mapping each (base, pitch) pair to its
-            corresponding (x, y) position as a tuple of floats.
 
         Raises
         ------
@@ -457,21 +448,14 @@ class GamutGraph(nx.DiGraph):
         return positions
 
     def draw(self, **kws):
-        """Draws a gamut graph.
-
-        This is a shorthand for :func:`delasol.utils.drawing.draw_gamut_graph`.
+        """Draws a gamut graph. This is a shorthand for :func:`delasol.utils.drawing.draw_gamut_graph`.
         Note that the drawing function is lazy-loaded: so only imported when
         you call the `GamutGraph.draw` method.
 
         Parameters
         ----------
-        **kws : keyword arguments
+        **kws
             See :func:`delasol.utils.drawing.draw_gamut_graph`
-
-        Returns
-        -------
-        None
-            This function does not return a value but draws a matplotlib figure.
         """
         from delasol.utils.drawing import draw_gamut_graph
 
@@ -487,9 +471,7 @@ GAMUTS = {}
 
 
 def register_gamut(gamut: GamutGraph) -> None:
-    """Register a GamutGraph.
-
-    See for example :cls:`delasol.solmizers.continental_16c` for an example
+    """Register a GamutGraph. See :class:`delasol.solmizers.continental_16c` for an example
     of how to register a new GamutGraph.
 
     Parameters
@@ -523,11 +505,6 @@ def get_gamut(name: str, **kws) -> GamutGraph:
         Additional keyword arguments to pass to the gamut graph class
         constructor. See :class:`delasol.graphs.gamut_graph.GamutGraph`
         for all keywords.
-
-    Returns
-    -------
-    GamutGraph
-        An instance of the specified gamut graph class.
 
     Raises
     ------

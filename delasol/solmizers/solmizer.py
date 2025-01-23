@@ -187,23 +187,23 @@ class Solmizer(ABC):
 
         Parameters
         ----------
-        rank : int, optional
+        rank
             The rank to use for evaluation. Default is 0.
-        format : str, optional
+        format
             The format of the evaluation, default is "syllable".
-        targets : iterable of str, optional
+        targets
             The target lyrics to evaluate against. If None and
             target_lyric_number is provided, targets will be extracted
             from the specified target notes.
-        target_notes : iterable of Note, optional
+        target_notes
             The notes corresponding to the target lyrics. If None, all
             input notes will be used.
-        target_lyric_number : int, optional
+        target_lyric_number
             The specific lyric number to extract targets from if
             targets is None.
-        formatter_kws : dict, optional
+        formatter_kws
             Additional keyword arguments for the formatter.
-        evaluator_kws : dict, optional
+        evaluator_kws
             Additional keyword arguments for the evaluator: see :meth:`Evaluator.evaluate`
 
         Returns
@@ -238,7 +238,7 @@ class Solmizer(ABC):
 
     def annotate(
         self, annotator_name: str = "solmization", **annotator_kws
-    ) -> t.Type["Annotator"]:
+    ) -> "Annotator":
         """Annotate the stream using a particular annotator.
 
         Note that this method only works when the solmizer has been
@@ -247,15 +247,10 @@ class Solmizer(ABC):
 
         Parameters
         ----------
-        name : str
+        name
             The name of the annotator to be used for annotation
-        **annotator_kws : keyword arguments
+        **annotator_kws
             Additional keyword arguments to be passed to `annotator.annotate`.
-
-        Returns
-        -------
-        Annotator
-            An instance of the specified annotator
         """
         annotator = get_annotator(annotator_name, self)
         annotator.annotate(**annotator_kws)

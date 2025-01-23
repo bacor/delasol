@@ -18,16 +18,15 @@ from delasol.custom_types import RolloutGraphNode
 class Pathfinder(ABC):
     """
     Abstract base class for pathfinding algorithms.
-
     A pathfinder should search for the best paths in a rollout graph.
 
     Parameters
     ----------
-    graph : nx.DiGraph
+    graph
         A directed graph from which paths will be generated.
-    max_paths : int, optional
+    max_paths
         The maximum number of paths to generate (default is 1000).
-    **kws : keyword arguments
+    **kws
         Additional keyword arguments to be passed to the path finding method.
 
     Attributes
@@ -65,7 +64,6 @@ class Pathfinder(ABC):
         self, rollout: RolloutGraph, **kws
     ) -> t.Iterator[tuple[RolloutGraphPath, dict]]:
         """Find ranked paths in the rollout and their properties.
-
         The paths are assumed to be ranked in some way, so that the first
         path is the optimal path, the second path is the second-best path, etc.
         The function should return an iterator of `(path, props)` tuples.
@@ -76,9 +74,9 @@ class Pathfinder(ABC):
 
         Parameters
         ----------
-        rollout : RolloutGraph
+        rollout
             The rollout graph for which paths are to be generated.
-        **kws : keyword arguments
+        **kws
             Additional parameters to customize path generation.
 
         Returns
@@ -99,7 +97,7 @@ class Pathfinder(ABC):
 
         Parameters
         ----------
-        path : RolloutGraphPath
+        path
             The path to be validated.
 
         Raises
@@ -118,7 +116,7 @@ class Pathfinder(ABC):
 
         Parameters
         ----------
-        props : dict
+        props
             The properties to validate.
 
         Raises
@@ -129,41 +127,31 @@ class Pathfinder(ABC):
         if not isinstance(props, dict):
             raise Exception("Properties should be a dictionary")
 
-    def preprocess_path(self, path: RolloutGraphPath, props: dict) -> t.Iterable:
-        """Hook for preprocessing paths.
-
-        Note that the preprocessed path should not change the size of the path
-        (which should be the same as the length of the rollout graph).
+    def preprocess_path(self, path: RolloutGraphPath, props: dict) -> RolloutGraphPath:
+        """Hook for preprocessing paths. Note that the preprocessed path
+        should not change the size of the path (which should be the same
+        as the length of the rollout graph). Returns the preprocessed path.
 
         Parameters
         ----------
-        path : RolloutGraphPath
+        path
             The path to be preprocessed
-        props : dict
+        props
             The properties of the path
-
-        Returns
-        -------
-        Iterable
-            A preprocessed version of the input path.
         """
         return path
 
     def preprocess_props(self, props: dict, path: RolloutGraphPath) -> dict:
         """Hook for preprocessing path properties. By default adds
-        the total path weight.
+        the total path weight. Returns the preprocessed version of
+        the input properties.
 
         Parameters
         ----------
-        props : dict
+        props
             The properties to be preprocessed
-        path : RolloutGraphPath
+        path
             The path to which the properties belong
-
-        Returns
-        -------
-        dict
-            A preprocessed version of the input properties.
         """
         if not "weight" in props:
             props["weight"] = nx.path_weight(self.graph, path, "weight")
@@ -177,7 +165,7 @@ class Pathfinder(ABC):
 
         Parameters
         ----------
-        rank : int
+        rank
             The rank of the desired path. Must be a non-negative integer.
 
         Returns
@@ -218,9 +206,9 @@ class Pathfinder(ABC):
 
         Parameters
         ----------
-        rank : int
+        rank
             The rank for which the path is to be retrieved.
-        inputs_only : bool, optional
+        inputs_only
             If True, only the nodes corresponding to inputs are returned
 
         Returns
@@ -241,17 +229,12 @@ class Pathfinder(ABC):
             return path
 
     def get_props(self, rank: int) -> dict:
-        """Retrieve properties of the path with a given rank.
+        """Retrieve a dictionary with properties of the path with a given rank.
 
         Parameters
         ----------
-        rank : int
+        rank
             The rank of the path for which to retrieve the properties.
-
-        Returns
-        -------
-        dict
-            A dictionary with the path properties
         """
         _, props = self.get_path_and_props(rank)
         return props
@@ -261,7 +244,6 @@ class Pathfinder(ABC):
     ) -> BaseGraphPath | None:
         """Return the path of given rank, but transformed into a path in the
         base graph rather than the rollout.
-
         Nodes in the rollout graph are of the form `(time, node)`, where
         `node` is a node in the base graph. This function returns a list
         of base graph nodes for a given rank, so discards the time indices.

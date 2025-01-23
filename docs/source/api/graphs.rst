@@ -1,6 +1,10 @@
 Graphs
 ======
 
+.. role:: py(code)
+  :language: python
+  :class: highlight
+
 .. module:: delasol.graphs
 
 HexachordGraph

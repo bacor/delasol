@@ -12,3 +12,4 @@ API
     api/evaluator.rst
     api/annotator.rst
     api/utils.rst
+    api/custom_types.rst

@@ -1,9 +1,9 @@
-Evaluation
-==========
+Custom types
+============
 
 .. role:: py(code)
   :language: python
   :class: highlight
 
-.. automodule:: delasol.evaluator
+.. automodule:: delasol.custom_types
    :members:

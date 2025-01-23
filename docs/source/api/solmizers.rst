@@ -1,19 +1,31 @@
 Solmizers
 =========
 
-.. module:: delasol.solmizers
+.. role:: py(code)
+  :language: python
+  :class: highlight
 
-Abstract Solmizer
--------------------
+.. module:: delasol.solmizers.solmizer
 
-.. autoclass:: delasol.solmizers.solmizer.Solmizer
+Solmizer (Abstract Base Class)
+------------------------------
+
+.. autoclass:: Solmizer
     :members:
     :undoc-members:
+
+.. autofunction:: solmize
+
+.. autofunction:: get_solmizer
+
+.. autofunction:: register_solmizer
+
 
 16th-century Continental Solmizer
 -------------------------------
 
-.. autoclass:: delasol.solmizers.continental_16c.Continental16cSolmizer
+.. module:: delasol.solmizers.continental_16c
+.. autoclass:: Continental16cSolmizer
     :members:
     :undoc-members:
 
@@ -21,7 +33,8 @@ Abstract Solmizer
 16th-century English Solmizer
 -------------------------------
 
-.. autoclass:: delasol.solmizers.english_16c.English16cSolmizer
+.. module:: delasol.solmizers.english_16c
+.. autoclass:: English16cSolmizer
     :members:
     :undoc-members:
 

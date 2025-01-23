@@ -18,19 +18,14 @@ def latexify_subscript(input: str, as_text: bool = True) -> str:
 
     Parameters
     ----------
-    input : str
+    input
         The input string which may contain a subscript indicated by an
         underscore ('_'). If the underscore is present, the part before the
         underscore is treated as the main text, and the part after is treated
         as the subscript.
-    as_text : bool, optional
+    as_text
         If True, the function returns a LaTeX formatted string with the text
         and subscript wrapped in a text environment. Default is True.
-
-    Returns
-    -------
-    str
-        A LaTeX formatted string.
 
     Examples
     --------
@@ -56,10 +51,10 @@ def get_relative_lims(ticks: t.Iterable[float], margin: float) -> tuple[float, f
 
     Parameters
     ----------
-    ticks : iterable of float
+    ticks
         An iterable containing the tick values from which to calculate the
         limits.
-    margin : float
+    margin
         A margin to be applied to the calculated limits, expressed as a
         fraction of the range between the minimum and maximum tick values.
 
@@ -79,16 +74,11 @@ def set_relative_lims(ax: Axes, margin: float = 0.2) -> None:
 
     Parameters
     ----------
-    ax : Axes
+    ax
         The matplotlib Axes object for which the limits will be set.
-    margin : float, optional
+    margin
         The margin to apply to the limits, expressed as a fraction of the
         data aspect ratio for the x-axis. Default is 0.2.
-
-    Returns
-    -------
-    None
-        This function modifies the limits of the provided Axes in place.
     """
     aspect = ax.get_data_ratio()
     xlim = get_relative_lims(ax.get_xticks(), margin * aspect)
@@ -174,43 +164,45 @@ def draw_graph(
 
     Parameters
     ----------
-    graph : nx.Graph
+    graph
         The graph to be drawn.
 
-    labels : {str, dict, optional}
+    labels
         The labels to use for the nodes:
+
         - str: The attribute of the nodes to use as labels. The attributes
           "name", "syllable", and "index" are predefined, but you can use
           custom attributes. A ValueError is raised if the the attribute
           specified does not exist.
         - dict: A dictionary mapping nodes to labels.
+
         Default is "name".
 
-    pos : dict, optional
+    pos
         A dictionary mapping nodes to their positions in the plot. If None,
         positions will be retrieved from the graph's node attributes.
 
-    weights : iterable of float, optional
+    weights
         A collection of weights for the edges. If None, weights will be
         extracted from the graph's edges.
 
-    show_loops : bool, optional
+    show_loops
         If True, self-loops will be included in the drawing. Default is False.
 
-    ax : matplotlib.axes.Axes, optional
+    ax
         The axes to draw the graph on. If None, a new figure will be created.
 
-    figsize : tuple, optional
+    figsize
         The size of the figure in inches; ignored if `ax` is specified.
         Default is (8, 4).
 
-    label_kws : dict, optional
+    label_kws
         Additional keyword arguments for node label styling.
 
-    edge_kws : dict, optional
+    edge_kws
         Additional keyword arguments for edge styling.
 
-    color_mapper : callable, optional
+    color_mapper
         A function that maps edge weights to colors. Default is a function
         that scales weights to a red color gradient.
 

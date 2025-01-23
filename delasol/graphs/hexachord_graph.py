@@ -20,31 +20,23 @@ from delasol.constants import INTERNAL_SYLLABLES, HEXACHORD_NUMBERING
 class HexachordGraph(nx.DiGraph):
     """
     A directed graph representing a hexachord.
-
     Nodes in the graph are Pitch objects and have the following attributes:
 
-    - index (int): the zero-based index of the pitch in the hexachord (e.g. ut
+    - **index** (int): the zero-based index of the pitch in the hexachord (e.g. ut
       is 0, fa-super-la is 6)
-    - name (string): the (globally) unique name of the node (e.g. "ut_C3", "re_F4", etc.)
-    - syllable (string): the syllable of the hexachord (e.g. "ut", "re", etc.)
+    - **name** (string): the (globally) unique name of the node (e.g. "ut_C3", "re_F4", etc.)
+    - **syllable** (string): the syllable of the hexachord (e.g. "ut", "re", etc.)
 
     Parameters
     ----------
-    base : PitchLike
+    base
         The base of the hexachord: the lowest note in the hexachord or the ut.
-    fa_super_la : bool, optional
+    fa_super_la
         A flag indicating whether to include the fa super la in the hexachord.
         If so, it becomes a 'heptachordal hexachord', otherwise it is a normal
         hexachord. Default is True.
-    **kwargs : keyword arguments
+    **kwargs
         Additional keyword arguments to be passed to the build method.
-
-    Notes
-    -----
-    This class builds a sequence of pitches based on the specified base pitch
-    and the defined intervals. The intervals are applied in the order: major
-    second, major second, minor second, major second, major second, and
-    optionally a minor second if `fa_super_la` is True.
 
     Examples
     --------
@@ -62,11 +54,11 @@ class HexachordGraph(nx.DiGraph):
 
     Attributes
     ----------
-    base : Pitch
+    base : music21.pitch.Pitch
         The base pitch of the hexachord.
     fa_super_la : bool
         Indicates whether the hexachord includes the fa super la.
-    pitches : list of Pitch
+    pitches : list of music21.pitch.Pitch
         The list of pitches in the hexachord.
     """
 
@@ -99,21 +91,18 @@ class HexachordGraph(nx.DiGraph):
     @property
     def number(self) -> int | None:
         """The number of a hexachord, if the hexachord starts on C, F, or G.
-
         Conventionally those hexachords are numbered, from 1 for the hexachord
         on G2 (Gamma ut) up to 7 for the hexachord on G4. Lower and higher
         hexachords simply continue the numbering, so the hexachord on F2 is
         number 0, and the hexachord on C5 is number 8. If the hexachord has
-        a different base, None is returned.
+        a different base, :py:`None` is returned.
         """
         return HEXACHORD_NUMBERING.get(self.base, None)
 
     @property
     def quality(self) -> str | None:
-        """The quality (natural, soft or hard) of the hexachord.
-
-        The quality is "natural" for hexachords on Cs, "soft" for those on Fs,
-        "hard" for those on Gs, and None otherwise.
+        """The quality of the hexachord, which can be :py:`"natural"` for hexachords on Cs,
+        :py:`"soft"` for those on Fs, :py:`"hard"` for those on Gs, and :py:`None` otherwise.
 
         Examples
         --------
@@ -131,7 +120,7 @@ class HexachordGraph(nx.DiGraph):
 
     @property
     def base_name(self) -> str:
-        """The name of the base with the octave
+        """The name of the base, along with the octave.
 
         Examples
         --------
@@ -144,13 +133,8 @@ class HexachordGraph(nx.DiGraph):
 
     @cached_property
     def name_to_node(self) -> dict[str, HexachordGraphNode]:
-        """A dictionary mapping node names to the corresponding nodes.
-
-        Returns
-        -------
-        dict of str: HexachordGraphNode
-            A dictionary where the keys are the names of the nodes and the
-            values are the corresponding graph nodes (Pitch objects).
+        """A dictionary in which the keys are the names of the nodes and the
+        values are the corresponding graph nodes.
 
         Examples
         --------
@@ -162,13 +146,8 @@ class HexachordGraph(nx.DiGraph):
 
     @cached_property
     def syllable_to_node(self) -> dict[str, HexachordGraphNode]:
-        """A dictionary mapping syllables to their corresponding nodes.
-
-        Returns
-        -------
-        dict of str: HexachordGraphNode
-            A dictionary where the keys are the syllables of the nodes and the
-            values are the corresponding graph nodes (Pitch objects).
+        """A dictionary where the keys are the syllables of the nodes and the
+        values are the corresponding graph nodes.
 
         Examples
         --------
@@ -180,13 +159,8 @@ class HexachordGraph(nx.DiGraph):
 
     @cached_property
     def index_to_node(self) -> dict[int, HexachordGraphNode]:
-        """A dictionary mapping indices to their corresponding nodes.
-
-        Returns
-        -------
-        dict of int: HexachordGraphNode
-            A dictionary where the keys are the indices of the nodes and the
-            values are the corresponding graph nodes (Pitch objects).
+        """A dictionary where the keys are the indices of the nodes and the
+        values are the corresponding graph nodes.
 
         Examples
         --------
@@ -204,23 +178,22 @@ class HexachordGraph(nx.DiGraph):
         loop_weight: float = 0.5,
         fa_super_la_weight: float = 1.5,
         weights: np.ndarray = None,
-    ):
+    ) -> None:
         """Build a weighted hexachord graph with the specified weights.
-
-        Nodes in the graph are Pitch objects, and have attributes containing their index, name, and position. See class documentation for details.
+        Nodes in the graph are Pitch objects, and have attributes containing their index, name, and position. See :py:class:`HexachordGraph` documentation for details.
 
         Parameters
         ----------
-        step_weight : float, optional
+        step_weight
             The weight assigned to step transitions between nodes. Default is 1.
             Ignored if `weights` is provided.
-        loop_weight : float, optional
+        loop_weight
             The weight assigned to loop transitions (self-loops) for each node.
             Default is 0.5. Ignored if `weights` is provided.
-        fa_super_la_weight : float, optional
+        fa_super_la_weight
             The weight assigned to the transition between the la and fa super la.
             Default is 1.5. Ignored if `weights` is provided.
-        weights : np.ndarray, optional
+        weights
             A pre-defined weight matrix for the edges. It should be a 7x7 matrix,
             so that the element at position (i, j) in the matrix represents the
             weight of the edge from node i to node j. A weight of 0 means there
@@ -256,18 +229,13 @@ class HexachordGraph(nx.DiGraph):
 
         Parameters
         ----------
-        name : str, optional
+        name
             The name of the node to retrieve.
-        index : int, optional
+        index
             The index of the node to retrieve. Note that this is zero-based,
-            so the ut has index 0.
-        syllable : str, optional
+            so the *ut* has index 0.
+        syllable
             The syllable associated with the node to retrieve.
-
-        Returns
-        -------
-        HexachordGraphNode
-            The node corresponding to the specified name, index, or syllable.
 
         Raises
         ------
@@ -304,28 +272,22 @@ class HexachordGraph(nx.DiGraph):
         self, y: float = 0, offset_x: float = 0
     ) -> dict[HexachordGraphNode, tuple[float, float]]:
         """Calculate the positions of nodes in a hexachord graph.
+        Returns a dictionary mapping each node to its corresponding (x, y) position
+        as a tuple, where x is the diatonic note number plus an optional
+        offset and y is the provided parameter.
 
         Parameters
         ----------
-        y : float, optional
+        y
             The y-coordinate for the positions of the nodes. Default is 0.
-        offset_x : float, optional
+        offset_x
             The x-coordinate offset to be added to the diatonic note number of
             each node. Default is 0.
-
-        Returns
-        -------
-        dict[HexachordGraphNode, tuple[float, float]]
-            A dictionary mapping each node to its corresponding (x, y) position
-            as a tuple, where x is the diatonic note number plus an optional
-            offset and y is the provided parameter.
         """
         return {node: (offset_x + node.diatonicNoteNum, y) for node in self.nodes}
 
     def draw(self, **kws) -> None:
-        """Draws a a hexachord graph.
-
-        This is a shorthand for
+        """Draws a a hexachord graph. This is a shorthand for
         :func:`delasol.utils.drawing.draw_hexachord_graph`. Note that the
         drawing function is lazy-loaded: so only imported when you call the
         `HexachordGraph.draw` method.
@@ -334,23 +296,10 @@ class HexachordGraph(nx.DiGraph):
         ----------
         **kws : keyword arguments
             See :func:`delasol.utils.drawing.draw_hexachord_graph`
-
-        Returns
-        -------
-        None
-            This function does not return a value but draws a matplotlib figure.
         """
         from delasol.utils.drawing import draw_hexachord_graph
 
         draw_hexachord_graph(self, **kws)
-
-    # Deprecated
-
-    def syllables(self):
-        raise DeprecationWarning("use syllable_to_node")
-
-    def names(self):
-        raise DeprecationWarning("use name_to_node")
 
 
 # Ensure that doctest also evaluates these cached properties

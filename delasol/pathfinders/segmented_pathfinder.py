@@ -18,21 +18,19 @@ from delasol.pathfinders.pathfinder import Pathfinder
 
 
 class Segment(object):
-    """A segment class
-
-    A segment is a window of the base graph that has only a single start and
+    """A segment is a window of the base graph that has only a single start and
     end node. This means that all paths through the base graph will agree at
     the start and end of a segment. All shortest paths through a segment are
     immediately computed.
 
     Parameters
     ----------
-    graph : RolloutGraph
+    graph
         The base graph to segment. The graph needs to have a timesteps attribute.
-    start : int
+    start
         The starting time of the segment. There must be exactly one node in
         this time slice.
-    end : int
+    end
         The ending node of the segment. There must be exactly one node in
         this time slice.
 
@@ -105,8 +103,6 @@ class Segment(object):
 
 class SegmentsGraph(nx.DiGraph):
     """
-    Initialize a new instance of the class.
-
     A segment is a window of the base graph that has only a single start and
     end node. This means that all paths through the base graph will agree at
     the start and end of a segment. In a segments graph, each node corresponds
@@ -117,7 +113,7 @@ class SegmentsGraph(nx.DiGraph):
 
     Parameters
     ----------
-    base : RolloutGraph
+    base
         The base rollout graph to be segmented.
 
     Attributes
@@ -189,15 +185,10 @@ class SegmentsGraph(nx.DiGraph):
 
     def node_positions(self) -> dict[RolloutGraphNode, t.Tuple[int, int]]:
         """Calculate the positions of nodes to be used in plotting.
-
         The "START" node is positioned at (-1, 0) and the "END" node is
         positioned at (length of segments, 0). All other nodes are
         returned as they are.
-
-        Returns
-        -------
-        dict
-            A dictionary mapping each node to its corresponding position
+        A dictionary mapping each node to its corresponding position
         """
         positions = {}
         for node in self.nodes:
@@ -216,7 +207,6 @@ class SegmentsGraph(nx.DiGraph):
 
 class SegmentedPathfinder(Pathfinder):
     """A segmented pathfinder.
-
     This pathfinder divides the base graph into segments, where each segment
     is a window of the base graph that has only a single start and end node.
     This means that all paths through the base graph will agree at the start
@@ -232,10 +222,10 @@ class SegmentedPathfinder(Pathfinder):
 
     Parameters
     ----------
-    graph : RolloutGraph
+    graph
         The graph to find paths in. Must be a RolloutGraph.
 
-    **kws : keyword arguments
+    **kws
         Additional arguments passed to AbstractPathfinder.
 
     Raises
@@ -265,41 +255,3 @@ class SegmentedPathfinder(Pathfinder):
             for pos in range(segment.start, segment.end + 1):
                 time_to_segment[pos] = segment
         return time_to_segment
-
-    # DEPRECATED
-
-    # def step(self, time: int):
-    #     segment = self.time_to_segment[time]
-    #     return segment[time]
-
-    # def iter_steps(self, timesteps: t.Iterable[int], return_orig_node: bool = True):
-    #     last_segment = None
-    #     for time in timesteps:
-    #         segment = self.time_to_segment[time]
-    #         step = segment[time]
-    #         if return_orig_node:
-    #             step["nodes"] = [n[1] for n in step["nodes"]]
-    #         step["is_first"] = segment != last_segment
-    #         last_segment = segment
-    #         yield step
-
-    # def iter_selected_paths(
-    #     self,
-    #     selector: t.Callable[[Segment], int],
-    #     positions: t.Iterable[int] = None,
-    #     return_orig_node: bool = True,
-    # ):
-    #     for index, segment in enumerate(self.segments):
-    #         index = selector(index, segment)
-    #         for i, step in enumerate(segment):
-    #             pos = segment.start + i
-    #             if positions is None or pos in positions:
-    #                 node = step["nodes"][index]
-    #                 yield node[1] if return_orig_node else node
-
-    # def iter_nth_path(self, n: int = 0, **kwargs):
-    #     selector = lambda index, segment: min(n, len(segment.paths))
-    #     return self.iter_selected_paths(selector, **kwargs)
-
-    # def iter_best_path(self, **kwargs):
-    #     return self.iter_nth_path(0, **kwargs)

@@ -42,11 +42,15 @@ intersphinx_disabled_domains = ["std"]
 
 templates_path = ["_templates"]
 
+autodoc_typehints = (
+    "description"  # Ensures type hints are shown in the description, not duplicated
+)
+
 autodoc_member_order = "bysource"
 
 # -- Options for HTML output
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 
 # -- Options for EPUB output
 epub_show_urls = "footnote"
@@ -55,3 +59,9 @@ epub_show_urls = "footnote"
 # https://jupyter-sphinx.readthedocs.io/en/latest/#configuration-options
 # package_path = os.path.abspath("../")
 # os.environ["PYTHONPATH"] = ":".join((package_path, os.environ.get("PYTHONPATH", "")))
+
+autodoc_type_aliases = {
+    # "HexachordGraphNode": "HexachordGraphNode",
+    # "GamutGraphNode": "GamutGraphNode",
+    # "RolloutGraphNode": "RolloutGraphNode",
+}

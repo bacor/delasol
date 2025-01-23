@@ -81,7 +81,7 @@ class Formatter(ABC):
     """
 
     name: str
-    """str: Name of the formatter. Also used to register the formatter."""
+    """Name of the formatter that can be used to get the formatter using :py:func:`get_formatter`"""
 
     def __init__(self, gamut: GamutGraph, **kws):
         self.gamut = gamut
@@ -92,24 +92,19 @@ class Formatter(ABC):
 
     def format_names(self, names: str | list[str], auto_split=True, **kws) -> list[str]:
         """Format solmization paths using node names rather than nodes themselves.
-        See :class:`Formatter` for examples.
+        See :class:`Formatter` for examples. Returns Aa list of formatted names.
 
         Parameters
         ----------
-        names : str or list of str
+        names
             A single name as a string or a list of names to be formatted. If a
             string is provided and `auto_split` is True, the string will be split
             into individual names based on spaces.
-        auto_split : bool, optional
+        auto_split
             A flag indicating whether to automatically split a string of names into
             a list. Default is True.
-        **kws : keyword arguments
+        **kws
             Additional keyword arguments to be passed to the formatting function.
-
-        Returns
-        -------
-        list of str
-            A list of formatted names corresponding to the input names.
         """
         if isinstance(names, str) and " " not in names:
             node = self.gamut.get_node(name=names)
@@ -128,15 +123,15 @@ class Formatter(ABC):
 
         Parameters
         ----------
-        input : GamutGraphPath or GamutGraphNode
+        input
             The input object to be formatted.
-        join : bool, optional
+        join
             If True, the output will be a single string. If False, a list of
             strings will be returned. Default is False.
-        sep : str, optional
+        sep
             The separator to use when joining the strings if `join` is True.
             Default is a single space.
-        **kws : keyword arguments
+        **kws
             Additional keyword arguments to be passed to `format_path`
 
         Returns
@@ -161,19 +156,14 @@ class Formatter(ABC):
     @abstractmethod
     def format_path(self, path: GamutGraphPath, **kws) -> list[str]:
         """Format a solmization path into a list of strings. Should be implemented
-        in the subclass.
+        in the subclass and return a list of strings representing the formatted path.
 
         Parameters
         ----------
-        path : GamutGraphPath
+        path
             The path to be formatted.
-        kws : keyword arguments
+        kws
             Additional keyword arguments to be passed to the formatting function.
-
-        Returns
-        -------
-        list[str]
-            A list of strings representing the formatted path.
         """
         raise NotImplementedError
 
@@ -191,7 +181,7 @@ def register_formatter(formatter: Formatter):
 
     Parameters
     ----------
-    formatter : Formatter
+    formatter
         The formatter class to be registered.
 
     Raises
@@ -212,17 +202,12 @@ def get_formatter(name: str, gamut: GamutGraph, **kws) -> Formatter:
 
     Parameters
     ----------
-    name : str
+    name
         The name of the formatter.
-    gamut : GamutGraph
+    gamut
         The gamut graph.
-    **kws : keyword arguments
+    **kws
         Additional keyword arguments to be passed to the formatter
-
-    Returns
-    -------
-    Formatter
-        The formatter instance.
 
     Raises
     ------

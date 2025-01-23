@@ -1,6 +1,10 @@
 Utilities
 =========
 
+.. role:: py(code)
+  :language: python
+  :class: highlight
+
 Music21
 -------
 

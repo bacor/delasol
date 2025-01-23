@@ -30,7 +30,6 @@ def match_second_el(node: BaseGraphNode, target: SeqType) -> bool:
 class RolloutGraph(nx.DiGraph):
     """
     An (interpolated) rollout graph.
-
     A rollout graph basically shows all ways a sequence can be 'parsed' by
     the base graph. The sequence contains values that are somehow related to
     the nodes in the base graph (e.g. pitches, names, etc.). Note that the
@@ -51,53 +50,11 @@ class RolloutGraph(nx.DiGraph):
     and END nodes). The width of the rollout graph at a given timestep is the
     number of nodes at that timestep.
 
-    Parameters
-    ----------
-    graph : nx.Graph
-        The base graph.
-
-    sequence : Iterable[SeqType]
-        A sequence of values to be unrolled. Must not be empty.
-
-    match_fn : Callable[[BaseGraphNode, SeqType], bool], optional
-        A function that takes a node from the base graph and value
-        and returns a boolean indicating a match. Defaults to `match_node`.
-
-    prune_dead_ends : bool, optional
-        A flag indicating whether to prune dead-ends: branches that cannot
-        be extended to parse the input sequence. Defaults to True.
-
-    default_weight : float, optional
-        The default weight used if an edge in the base graph is unweighed.
-
-    **kwargs : keyword arguments
-        Additional keyword arguments to be passed to the nx.DiGraph
-        initializer.
-
-    Attributes
-    ----------
-    base : nx.Graph
-        The base graph.
-    match_fn : Callable[[BaseGraphNode, SeqType], bool]
-        The function used to match nodes to values
-    input_timesteps : Iterable[int] | None
-        A list of timesteps at which the input values are found
-    default_weight : float
-        The default weight used if an edge in the base graph is unweighed
-    start : RolloutGraphNode
-        The very first START node at time 0: `(0, 'START')`.
-    end : RolloutGraphNode
-        The very last END node at the end of the rollout: `(len(self), 'END')`.
-
-    Raises
-    ------
-    ValueError
-        If the provided sequence is None or empty.
-
     Examples
     --------
 
     Here's an example using a complete graph with three nodes (no loops)
+
     >>> import networkx as nx
     >>> graph = nx.complete_graph(3)
     >>> rollout = RolloutGraph(graph, [0, 2, 1])
@@ -119,6 +76,49 @@ class RolloutGraph(nx.DiGraph):
     9
     >>> rollout.width
     [1, 1, 2, 2, 1, 2, 2, 1, 1]
+
+    Parameters
+    ----------
+    graph
+        The base graph.
+
+    sequence
+        A sequence of values to be unrolled. Must not be empty.
+
+    match_fn
+        A function that takes a node from the base graph and value
+        and returns a boolean indicating a match. Defaults to `match_node`.
+
+    prune_dead_ends
+        A flag indicating whether to prune dead-ends: branches that cannot
+        be extended to parse the input sequence. Defaults to True.
+
+    default_weight
+        The default weight used if an edge in the base graph is unweighed.
+
+    **kwargs
+        Additional keyword arguments to be passed to the nx.DiGraph
+        initializer.
+
+    Raises
+    ------
+    ValueError
+        If the provided sequence is None or empty.
+
+    Attributes
+    ----------
+    base : nx.Graph
+        The base graph.
+    match_fn : Callable[[BaseGraphNode, SeqType], bool]
+        The function used to match nodes to values
+    input_timesteps : Iterable[int] | None
+        A list of timesteps at which the input values are found
+    default_weight : float
+        The default weight used if an edge in the base graph is unweighed
+    start : RolloutGraphNode
+        The very first START node at time 0: `(0, 'START')`.
+    end : RolloutGraphNode
+        The very last END node at the end of the rollout: `(len(self), 'END')`.
     """
 
     input_timesteps: t.Iterable[int] | None = None
@@ -157,25 +157,13 @@ class RolloutGraph(nx.DiGraph):
 
     @property
     def sequence(self) -> t.Iterable[SeqType]:
-        """The sequence parsed by this parse graph. Note that this is a read-only property.
-
-        Returns
-        -------
-        sequence : t.Iterable[SeqType]
-            The sequence stored in the instance.
-        """
+        """The sequence parsed by this parse graph. Note that this is a read-only property."""
         return self.__seq
 
     # TODO rename this to something like slices so that timesteps returns the actual timesteps only.
     @cached_property
     def timesteps(self) -> dict[int, list[RolloutGraphNode]]:
-        """A dictionary mapping timesteps to a list of nodes found at that time slice.
-
-        Returns
-        -------
-        dict[int, list[RolloutGraphNode]]
-            A dictionary maping timesteps to list of nodes
-        """
+        """A dictionary mapping timesteps to a list of nodes found at that time slice."""
         timesteps = {}
         for node in self.nodes:
             time = node[0]
@@ -186,38 +174,28 @@ class RolloutGraph(nx.DiGraph):
 
     @cached_property
     def width(self) -> list[int]:
-        """The width of the rollout at each timestep.
-
-        This function returns a list where each element represents the number of
-        nodes at each timestep.
-
-        Returns
-        -------
-        Iterable[int]
-            A list of the graph width at each timestep.
+        """The width of the rollout at each timestep. This function returns a list
+        where each element represents the number of nodes at each timestep.
 
         Examples
         --------
         >>> rollout = RolloutGraph(nx.complete_graph(3), [0, 2, 3, 1])
-
+        >>> rollout.width
+        [1, 1, 2, 2, 1, 2, 2, 1, 1]
         """
+        # TODO does the doctest work correctly?
         width = [1] * len(self)
         for time, nodes in self.timesteps.items():
             width[time] = len(nodes)
         return width
 
-    def slice(self, time: int) -> list[RolloutGraphNode]:
+    def slice(self, time: int) -> list["RolloutGraphNode"]:
         """Return the nodes at a given time step.
 
         Parameters
         ----------
-        time : int
+        time
             The time step for which to retrieve the nodes.
-
-        Returns
-        -------
-        list[RolloutGraphNode]
-            A list of nodes at the specified time step.
         """
         if time not in self.timesteps:
             raise ValueError(f"Time step {time} is out of range (0–{len(self)}).")
@@ -227,24 +205,19 @@ class RolloutGraph(nx.DiGraph):
 
     @lru_cache(maxsize=None)
     def search_base(
-        self, target: SeqType, nodes: t.Optional[t.Iterable[BaseGraphNode]] = None
-    ) -> list[BaseGraphNode]:
+        self, target: SeqType, nodes: t.Iterable[BaseGraphNode] = None
+    ) -> list["BaseGraphNode"]:
         """Search for nodes in the original graph that match a given target.
 
         Parameters
         ----------
-        target : SeqType
+        target
             The target to search for in the nodes of the graph. This must be
             of the same datatype as the sequence for which the parse graph was
             constructed.
-        nodes : iterable of BaseGraphNode, optional
+        nodes
             An iterable of nodes in the original graph to search through. If
             None, all nodes in the original graph will be searched.
-
-        Returns
-        -------
-        list of BaseGraphNode
-            A list of matching nodes in the base graph.
 
         Raises
         ------
@@ -264,25 +237,18 @@ class RolloutGraph(nx.DiGraph):
     @lru_cache(maxsize=None)
     def shortest_paths_base(
         self, source_value: BaseGraphNode, target_value: BaseGraphNode
-    ) -> list[BaseGraphPath]:
+    ) -> list["BaseGraphPath"]:
         """Return the shortest paths between two nodes in the base graph.
-
         This function searches for all shortest paths between the specified source
         and target nodes in the graph. It memoizes the results to optimize future
-        calls.
+        calls. If no paths exist, an empty list is returned.
 
         Parameters
         ----------
-        source_value : BaseGraphNode
+        source_value
             The starting node for the path search.
-        target_value : BaseGraphNode
+        target_value
             The ending node for the path search.
-
-        Returns
-        -------
-        list[BaseGraphPath]
-            A list of the shortest paths between the source and target nodes. If
-            no paths exist, an empty list is returned.
         """
         # TODO this is inefficient: whenever we search for a shortest path, we should
         # immediately memoize all intermediate paths. Next, the memoization should not
@@ -306,18 +272,14 @@ class RolloutGraph(nx.DiGraph):
 
     def __add_node(self, time: int, base_node: BaseGraphNode) -> RolloutGraphNode:
         """Add a node from the base graph to the rollout at a particular time.
+        The newly added node is returned.
 
         Parameters
         ----------
-        time : int
+        time
             The time at which the node is to be added.
-        base_node : BaseGraphNode
+        base_node
             The node from the base graph that will be added to the rollout.
-
-        Returns
-        -------
-        RolloutGraphNode
-            The newly added node in the rollout graph.
         """
         node = (time, base_node)
         attributes = dict(**self.base.nodes[base_node])
@@ -328,19 +290,14 @@ class RolloutGraph(nx.DiGraph):
         self, start_time: int, path: list[BaseGraphNode]
     ) -> list[RolloutGraphNode]:
         """Add a path of nodes to the graph starting from a given time.
+        The newly created nodes are all returned.
 
         Parameters
         ----------
-        start_time : int
+        start_time
             The starting time for the first node in the path.
-        path : list[BaseGraphNode]
+        path
             A list of base graph nodes to be added to the graph.
-
-        Returns
-        -------
-        list[RolloutGraphNode]
-            A list of newly created rollout graph nodes corresponding to the
-            provided path.
 
         Notes
         -----
@@ -367,7 +324,6 @@ class RolloutGraph(nx.DiGraph):
 
     def __build(self, prune_dead_ends: bool = True) -> None:
         """Builds the rollout graph from a given sequence.
-
         This method initializes the graph by adding nodes and edges based on the
         provided sequence. It starts from a designated starting node and connects
         to subsequent nodes based on the shortest paths found between values in
@@ -375,7 +331,7 @@ class RolloutGraph(nx.DiGraph):
 
         Parameters
         ----------
-        prune_dead_ends : bool, optional
+        prune_dead_ends
             If True, dead-end nodes will be removed from the graph after each
             iteration. Default is True.
 
@@ -443,7 +399,6 @@ class RolloutGraph(nx.DiGraph):
 
     def prune_branch(self, source: RolloutGraphNode) -> None:
         """Remove all predecessors of a node that have only one successor.
-
         This method prunes branches in the graph that cannot parse the sequence
         by removing nodes that only have a single successor. If a predecessor is
         found to have only one successor, it is recursively pruned. If the source
@@ -451,12 +406,8 @@ class RolloutGraph(nx.DiGraph):
 
         Parameters
         ----------
-        source : RolloutGraphNode
+        source
             The node from which to start pruning predecessors.
-
-        Returns
-        -------
-        None
         """
         predecessors = list(self.predecessors(source))
         for predecessor in predecessors:
@@ -469,34 +420,22 @@ class RolloutGraph(nx.DiGraph):
 
     # Drawing
 
-    def node_positions(self):
-        """Retrieve the positions of all nodes in the graph.
-
-        Returns
-        -------
-        dict
-            A dictionary where the keys are node identifiers and the values
-            are the corresponding coordinates of each node.
-        """
+    def node_positions(self) -> dict[RolloutGraphNode, tuple[float, float]]:
+        """Retrieve the positions of all nodes in the graph. Returns a dictionary
+        in which keys are node identifiers and the values are the corresponding
+        coordinates of each node."""
         return {node: self.nodes[node]["coordinates"] for node in self.nodes}
 
     def draw(self, **kws) -> None:
-        """Draws a a parse graph.
-
-        This is a shorthand for
-        :func:`delasol.utils.drawing.draw_parse_graph`. Note that the
+        """Draws a a parse graph. This is a shorthand for
+        :func:`delasol.utils.drawing.draw_rollout_graph`. Note that the
         drawing function is lazy-loaded: so only imported when you call the
         `RolloutGraph.draw` method.
 
         Parameters
         ----------
         **kws : keyword arguments
-            See :func:`delasol.utils.drawing.draw_parse_graph`
-
-        Returns
-        -------
-        None
-            This function does not return a value but draws a matplotlib figure.
+            See :func:`delasol.utils.drawing.draw_rollout_graph`
         """
         from delasol.utils.drawing import draw_rollout_graph
 

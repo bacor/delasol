@@ -1,5 +1,9 @@
 Pathfinders
-======
+===========
+
+.. role:: py(code)
+  :language: python
+  :class: highlight
 
 .. module:: delasol.pathfinders
 
@@ -20,6 +24,16 @@ Simple Pathfinder
 
 Segmented PathFinder
 --------------------
+
+.. module:: delasol.pathfinders.segmented_pathfinder
+
+.. autoclass:: Segment
+    :members:
+    :undoc-members:
+
+.. autoclass:: SegmentsGraph
+    :members:
+    :undoc-members:
 
 .. autoclass:: SegmentedPathfinder
     :members:
