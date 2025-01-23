@@ -5,9 +5,13 @@
 # -------------------------------------------------------------------
 import unittest
 from music21.pitch import Pitch
+from music21 import converter
+from music21.key import KeySignature
+from music21.clef import AltoClef
 
 # Local imports
 from delasol.graphs.gamut_graph import GamutGraph
+from delasol.solmizers import solmize
 from delasol.formatter import get_formatter
 
 
@@ -57,8 +61,21 @@ class TestFormatter(unittest.TestCase):
         self.assertListEqual(output, ["re_C3", "fi_B♭2"])
 
     def test_davantes(self):
-        # TODO implement
-        pass
+        s = converter.parse(
+            "tinynotation: 4/2 c1 d c A c B-2 A B-1 G F r2 F A1 B- c c d2 c A B- c1"
+        )
+        s.insert(0, KeySignature(-1))
+        clef = AltoClef()
+        s.insert(0, clef)
+        signs = "!6 !7 !6 !4 !6 .5 .4 !5 !3 !2 .2 !4 !5 !6 !6 .7 .6 .4 .5 !6".split(" ")
+        for sign, note in zip(signs, s.flatten().notes):
+            note.addLyric(sign)
+
+        solmizer = solmize(s, "continental_16c")
+        annotations = solmizer.solmize(
+            format="davantes", notes=solmizer.input, clef=clef
+        )
+        self.assertListEqual(annotations, signs)
 
     def test_mutation_formatter(self):
         seq = "ut_G2 re_G2 mi_G2 fa_G2 sol_G2 re_C3 mi_C3"

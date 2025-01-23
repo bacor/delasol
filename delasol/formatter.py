@@ -403,10 +403,81 @@ register_formatter(HexachordNumberFormatter)
 
 class DavantesFormatter(Formatter):
     """
-    Formatter that formats a path as a list of syllables.
-    """
+    Formats the solmization path using Davantes' numerical notation.
 
-    # TODO does this work?
+    The notation is rather peculiar: Stainer (1900) even speaks of the
+    "utter absurdity of Davantes' system"). Basically, possible note
+    positions on 5 staff lines are numbered. So, assuming a G clef,
+    1 stands for a D4, 2 for an E, 3 for an F, and so on. But importantly,
+    if the clef changes, the numbering does not. So with a bass clef,
+    the 1 now stands for a low F2. Numbering refers to the place on the
+    staff line, irrespective of clef.
+
+    Next, he adds a mark to the number that indicates both the length of
+    the note and the quality of the hexachord it is in, according to the
+    following scheme:
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Quality
+          - Half note
+          - Whole note
+        * - Natural hexachord
+          - (no mark)
+          - :py:`"'"` after number
+        * - Soft hexachord
+          - :py:`"."` before number
+          - :py:`"!"` before number
+        * - Hard hexachord
+          - :py:`"."` after number
+          - :py:`"!"` after number
+
+    So, assuming a alto clef, :py:`"6!"` denotes a half note C
+    in a soft hexachord, and :py:`".7"` indicates the next D, etc.
+    This is probably not a very useful notation, and indeed it
+    attracted little if any following. However, it may be interesting
+    that his notation explicitly encodes the hexachord, which is
+    one of the reasons for implementing it.
+
+    Finally, note that this formatter requires not just pitches but
+    actual notes do determine their duration, and also the clef.
+
+    Examples
+    --------
+
+    >>> import music21
+    >>> from delasol.solmizers import solmize
+    >>> s = music21.converter.parse("tinynotation: 4/2 c1 d c A c B-2 A B-1 G F")
+    >>> s.insert(0, music21.key.KeySignature(-1))
+    >>> clef = music21.clef.AltoClef()
+    >>> s.insert(0, clef)
+    >>> solmizer = solmize(s, "continental_16c")
+    >>> solmizer.solmize(format="davantes", notes=solmizer.input, clef=clef)
+    ['!6', '!7', '!6', '!4', '!6', '.5', '.4', '!5', '!3', '!2']
+
+    Parameters
+    ----------
+    self : object
+        The instance of the class that calls this method.
+    hexachord : HexachordGraph
+        The hexachord graph to be used for symbol generation.
+    pitch : music21.pitch.Pitch
+        The pitch object representing the musical pitch.
+    note : music21.note.Note
+        The note object representing the musical note.
+    clef : music21.clef.Clef
+        The clef object indicating the musical clef.
+    quarterLength : int, optional
+        The duration of the note in quarter lengths. If None, defaults to
+        a standard value.
+
+    Returns
+    -------
+    str
+        The generated Davantes symbol as a string.
+
+    """
 
     name = "davantes"
 
@@ -457,6 +528,7 @@ class DavantesFormatter(Formatter):
         output = []
         for note, (base, pitch) in zip(notes, path):
             kws = dict(
+                note=note,
                 pitch=pitch,
                 hexachord=self.gamut.hexachords[base],
                 quarterLength=note.duration.quarterLength,
@@ -500,12 +572,14 @@ class MutationFormatter(Formatter):
 
     Examples
     --------
+
     >>> gamut = GamutGraph(["G2", "C3"])
     >>> fmt = get_formatter('mutation', gamut)
     >>> fmt.format_names("ut_G2 mi_G2 fa_G2 sol_G2 re_C3 mi_C3")
     ['ut', None, None, None, 'sol/re', None]
 
     You can tweak the mutation string and the format of the nodes:
+
     >>> fmt.format_names("ut_G2 mi_G2 fa_G2 sol_G2 re_C3 mi_C3", mutation=" -> ", format="syllable_hexnum", formatter_kws=dict(subscript=False))
     ['ut1', None, None, None, 'sol1 -> re2', None]
 
