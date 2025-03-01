@@ -119,7 +119,7 @@ class Solmizer(ABC):
             pitches = [Pitch(n.pitch) for n in input]
         else:
             raise ValueError(
-                "Unsupported input type: you can pass an string of pitches or an iterable of pitches, notes or pitch strings"
+                "Unsupported input type: you can pass a string of pitches or an iterable of pitches, notes or pitch strings."
             )
         return pitches
 
