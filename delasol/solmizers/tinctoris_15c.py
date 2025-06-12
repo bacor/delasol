@@ -1,7 +1,9 @@
 import typing as t
 
-from delasol.solmizers.solmizer import Solmizer, register_solmizer
 from delasol.graphs.gamut_graph import GamutGraph, register_gamut
+from delasol.graphs.hexachord_graph import HexachordGraph
+from delasol.solmizers.solmizer import Solmizer, register_solmizer
+
 
 TINCTORIS_MUTATIONS = [ # Expositio Manus, capitulum VII: de mutationibus
     # ut -> re (always soft -> hard)
@@ -121,15 +123,17 @@ class Tinctoris15CenturyGamutGraph(GamutGraph):
     def __init__(
         self,
         hexachords: t.Optional[list[HexachordGraph]] = None,
-        mutations: t.Optional[dict] = CONTINENTAL_MUTATIONS,
+        mutations: t.Optional[dict] = TINCTORIS_MUTATIONS,
         hexachord_kws: t.Optional[dict] = {},
         **kwargs,
     ):
         if hexachords is None:
-            bases = ["G2", "C3", "G3", "C4", "G4", "C5"]
+            bases = ["G2", "C3", "F4", "G3", "C4", "F4", "G4"]
             hexachords = [HexachordGraph(base, **hexachord_kws) for base in bases]
         super().__init__(hexachords=hexachords, mutations=mutations, **kwargs)
-"
+
+register_gamut(Tinctoris15CenturyGamutGraph)
+
 
 class Tinctoris15cSolmizer(Solmizer):
     name = "tinctoris_15c"
