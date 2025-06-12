@@ -5,3 +5,4 @@
 # -------------------------------------------------------------------
 
 from delasol.solmizers import *
+from delasol.formatter import *
