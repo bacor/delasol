@@ -143,11 +143,9 @@ class Tinctoris15cSolmizer(Solmizer):
     def preprocess_input_and_opts(self, input, **kws):
         input, opts = super().preprocess_input_and_opts(input, **kws)
 
-        if opts.get("key", None) is None:
-            raise ValueError(
-                "Please specify the 'key' or make sure the stream has a KeySignature."
-            )
-        elif opts.get("key") not in [0, -1]:
+        key = opts.get("key")
+
+        if key and key not in [0, -1]:
             raise ValueError(f"Unsupported key signature ({opts['key']}).")
 
         # perhaps check if F below gamma is present and warn if so...?
