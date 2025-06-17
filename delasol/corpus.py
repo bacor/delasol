@@ -695,7 +695,7 @@ class Collection:
                     log["works"][id]["evaluation"] = evaluation.export()
                 except Exception as e:
                     log["works"][id]["status"] = "error"
-                    log["works"][id]["errors"][id] = str(e)
+                    log["works"][id]["errors"].append(str(e))
             else:
                 log["works"][id]["status"] = "skipped"
 
@@ -729,8 +729,13 @@ class Collection:
         """
         data = {}
         for id, work in log["works"].items():
-            data[id] = work["evaluation"]["counts"]
-            data[id]["num_notes"] = len(work["evaluation"]["predictions"])
+            try:
+                data[id] = work["evaluation"]["counts"]
+                data[id]["num_notes"] = len(work["evaluation"]["predictions"])
+            except KeyError:
+                data[id] = {}
+                data[id]["num_notes"] = None
+                print(f'{id} could not be parsed:\n', work)
             data[id]["status"] = work["status"]
         df = pd.DataFrame(data).T
         if "num_notes" in df:
