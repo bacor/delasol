@@ -14,7 +14,7 @@ from delasol.custom_types import GamutGraphNode
 
 import matplotlib.pyplot as plt
 
-
+# To do: better descriptions as comments.
 
 TINCTORIS_MUTATIONS = [
     # Reinterpretation: only one mutation at the very last of the previous hexachord node
@@ -114,7 +114,8 @@ class Tinctoris15cSolmizer(Solmizer):
             raise ValueError(f"Unsupported key signature ({opts['key']}).")
 
         # perhaps check if F below gamma is present and warn if so...?
-        # ...or change to a version with with one additional hexachord from F in gamut.
+        # ...or change to a version with one additional hexachord from F in gamut
+        # but then reindex hexachords to have the same number as the vanilla tinctoris gamut?
 
         return input, opts
 
