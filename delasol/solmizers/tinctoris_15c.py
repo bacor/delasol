@@ -2,112 +2,58 @@ import typing as t
 
 from delasol.graphs.gamut_graph import GamutGraph, register_gamut
 from delasol.graphs.hexachord_graph import HexachordGraph
+from delasol.graphs.rollout_graph import RolloutGraph
+from delasol.pathfinders.simple_pathfinder import SimplePathfinder
+from delasol.pathfinders.segmented_pathfinder import SegmentedPathfinder
 from delasol.solmizers.solmizer import Solmizer, register_solmizer
 
+from delasol.solmizers.continental_16c import match_diatonically
 
-TINCTORIS_MUTATIONS = [ # Expositio Manus, capitulum VII: de mutationibus
-    # ut -> re (always soft -> hard)
-    dict(source="hard", dir="up", target="soft", moves=[("ut", "fa")]),
-    dict(source="hard", dir="down", target="soft", moves=[("ut", "ut")]),
-    # ut -> fa
-    dict(source="natural", dir="down", target="hard", moves=[("ut", "mi")]),
-    dict(source="natural", dir="down", target="hard", moves=[("ut", "re")]),
-    dict(source="natural", dir="down", target="hard", moves=[("ut", "ut")]),
-    dict(source="soft", dir="down", target="natural", moves=[("ut", "mi")]),
-    dict(source="soft", dir="down", target="natural", moves=[("ut", "re")]),
-    dict(source="soft", dir="down", target="natural", moves=[("ut", "ut")]),
-    # ut -> sol
-    dict(source="hard", dir="down", target="natural", moves=[("ut", "fa")]),
-    dict(source="hard", dir="down", target="natural", moves=[("ut", "mi")]),
-    dict(source="hard", dir="down", target="natural", moves=[("ut", "re")]),
-    dict(source="hard", dir="down", target="natural", moves=[("ut", "ut")]),
-    dict(source="natural", dir="down", target="soft", moves=[("ut", "fa")]),
-    dict(source="natural", dir="down", target="soft", moves=[("ut", "mi")]),
-    dict(source="natural", dir="down", target="soft", moves=[("ut", "re")]),
-    dict(source="natural", dir="down", target="soft", moves=[("ut", "ut")]),
-    # re -> ut (always soft -> hard)
-    dict(source="soft", dir="up", target="hard", moves=[("re", "mi")]),
-    dict(source="soft", dir="up", target="hard", moves=[("re", "la")]),
-    # re -> mi (always hard -> soft)
-    dict(source="hard", dir="up", target="soft", moves=[("re", "fa")]),
-    dict(source="hard", dir="down", target="soft", moves=[("re", "ut")]),
-    # re -> sol
-    dict(source="natural", dir="down", target="hard", moves=[("re", "mi")]),
-    dict(source="natural", dir="down", target="hard", moves=[("re", "re")]),
-    dict(source="natural", dir="down", target="hard", moves=[("re", "ut")]),
-    dict(source="soft", dir="down", target="natural", moves=[("re", "mi")]),
-    dict(source="soft", dir="down", target="natural", moves=[("re", "re")]),
-    dict(source="soft", dir="down", target="natural", moves=[("re", "ut")]),
-    # re -> la
-    dict(source="hard", dir="down", target="natural", moves=[("re", "fa")]),
-    dict(source="hard", dir="down", target="natural", moves=[("re", "mi")]),
-    dict(source="hard", dir="down", target="natural", moves=[("re", "re")]),
-    dict(source="hard", dir="down", target="natural", moves=[("re", "ut")]),
-    dict(source="natural", dir="down", target="soft", moves=[("re", "fa")]),
-    dict(source="natural", dir="down", target="soft", moves=[("re", "mi")]),
-    dict(source="natural", dir="down", target="soft", moves=[("re", "re")]),
-    dict(source="natural", dir="down", target="soft", moves=[("re", "ut")]),
-    # mi -> re (always soft -> hard)
-    dict(source="soft", dir="up", target="hard", moves=[("mi", "mi")]),
-    dict(source="hard", dir="down", target="soft", moves=[("mi", "la")]),
-    # mi -> la
-    dict(source="natural", dir="down", target="hard", moves=[("mi", "mi")]),
-    dict(source="natural", dir="down", target="hard", moves=[("mi", "re")]),
-    dict(source="natural", dir="down", target="hard", moves=[("mi", "ut")]),
-    dict(source="soft", dir="down", target="natural", moves=[("mi", "mi")]),
-    dict(source="soft", dir="down", target="natural", moves=[("mi", "re")]),
-    dict(source="soft", dir="down", target="natural", moves=[("mi", "ut")]),
-    # fa -> ut
-    dict(source="hard", dir="up", target="natural", moves=[("fa", "fa")]),
-    dict(source="hard", dir="up", target="natural", moves=[("fa", "sol")]),
-    dict(source="hard", dir="up", target="natural", moves=[("fa", "la")]),
-    dict(source="natural", dir="up", target="soft", moves=[("fa", "fa")]),
-    dict(source="natural", dir="up", target="soft", moves=[("fa", "sol")]),
-    dict(source="natural", dir="up", target="soft", moves=[("fa", "la")]),
-    # fa -> sol (always hard -> soft)
-    dict(source="hard", dir="down", target="soft", moves=[("fa", "fa")]),
-    dict(source="hard", dir="down", target="soft", moves=[("fa", "ut")]),
-    # sol -> ut
-    dict(source="natural", dir="up", target="hard", moves=[("sol", "mi")]),
-    dict(source="natural", dir="up", target="hard", moves=[("sol", "fa")]),
-    dict(source="natural", dir="up", target="hard", moves=[("sol", "sol")]),
-    dict(source="natural", dir="up", target="hard", moves=[("sol", "la")]),
-    dict(source="soft", dir="up", target="natural", moves=[("sol", "mi")]),
-    dict(source="soft", dir="up", target="natural", moves=[("sol", "fa")]),
-    dict(source="soft", dir="up", target="natural", moves=[("sol", "sol")]),
-    dict(source="soft", dir="up", target="natural", moves=[("sol", "la")]),
-    # sol -> re
-    dict(source="hard", dir="up", target="natural", moves=[("sol", "fa")]),
-    dict(source="hard", dir="up", target="natural", moves=[("sol", "sol")]),
-    dict(source="hard", dir="up", target="natural", moves=[("sol", "la")]),
-    dict(source="natural", dir="up", target="soft", moves=[("sol", "fa")]),
-    dict(source="natural", dir="up", target="soft", moves=[("sol", "sol")]),
-    dict(source="natural", dir="up", target="soft", moves=[("sol", "la")]),
-    # sol -> fa (always soft -> hard)
-    dict(source="soft", dir="up", target="hard", moves=[("sol", "la")]),
-    dict(source="soft", dir="down", target="hard", moves=[("sol", "mi")]),
-    # sol -> la (always hard -> soft)
-    dict(source="hard", dir="down", target="soft", moves=[("sol", "fa")]),
-    dict(source="hard", dir="down", target="soft", moves=[("sol", "ut")]),
-    # la -> re
-    dict(source="natural", dir="up", target="hard", moves=[("la", "mi")]),
-    dict(source="natural", dir="up", target="hard", moves=[("la", "fa")]),
-    dict(source="natural", dir="up", target="hard", moves=[("la", "sol")]),
-    dict(source="natural", dir="up", target="hard", moves=[("la", "la")]),
-    dict(source="soft", dir="up", target="natural", moves=[("la", "mi")]),
-    dict(source="soft", dir="up", target="natural", moves=[("la", "fa")]),
-    dict(source="soft", dir="up", target="natural", moves=[("la", "sol")]),
-    dict(source="soft", dir="up", target="natural", moves=[("la", "la")]),
-    # la -> mi
-    dict(source="hard", dir="up", target="natural", moves=[("la", "fa")]),
-    dict(source="hard", dir="up", target="natural", moves=[("la", "sol")]),
-    dict(source="hard", dir="up", target="natural", moves=[("la", "la")]),
-    dict(source="natural", dir="up", target="soft", moves=[("la", "fa")]),
-    dict(source="natural", dir="up", target="soft", moves=[("la", "sol")]),
-    dict(source="natural", dir="up", target="soft", moves=[("la", "la")]),
-    # la -> sol (always soft -> hard)
-    dict(source="soft", dir="up", target="hard", moves=[("la", "la")]),
-    dict(source="soft", dir="down", target="hard", moves=[("la", "mi")]),
+from music21.pitch import Pitch
+from delasol.custom_types import GamutGraphNode
+
+import matplotlib.pyplot as plt
+
+
+
+TINCTORIS_MUTATIONS = [
+    # Reinterpretation: only one mutation at the very last of the previous hexachord node
+    # before the next out-of-reach hexachord node occurs allowed.
+    # So: we are staying in the previous hexachord as long as possible.
+    #
+    # Important insight: on the gamut graph, the arrow points
+    # _towards the place of mutation_.
+    # In the 'dict' notation below, the last syllable is one that mutates.
+    # Initially listed all the mutations from Expositio Manus, capitulum VII: de mutationibus.
+
+    # hard -> natural up
+    dict(source="hard", dir="up", target="natural", moves=[("sol", "mi")]),
+    # natural -> soft up
+    dict(source="natural", dir="up", target="soft", moves=[("sol", "mi")]),
+    # natural -> hard up
+    dict(source="natural", dir="up", target="hard", moves=[("sol", "re")]),
+    # soft -> hard up
+    dict(source="soft", dir="up", target="hard", moves=[("re", "re")]),
+    dict(source="soft", dir="up", target="hard", moves=[("sol", "sol")]),
+    # hard -> soft up
+    dict(source="hard", dir="up", target="soft", moves=[("ut", "mi")]), # ???
+    # soft -> natural up
+    dict(source="soft", dir="up", target="natural", moves=[("sol", "re")]),
+
+    # natural -> hard down
+    dict(source="natural", dir="down", target="hard", moves=[("re", "fa")]),
+    # natural -> soft down
+    dict(source="natural", dir="down", target="soft", moves=[("re", "sol")]),
+    # hard -> soft down
+    dict(source="hard", dir="down", target="soft", moves=[("sol", "sol")]),
+    dict(source="hard", dir="down", target="soft", moves=[("re", "re")]), # ?
+    # soft -> hard down
+    dict(source="soft", dir="down", target="hard", moves=[("la", "fa")]),
+    # hard -> natural down
+    dict(source="hard", dir="down", target="natural", moves=[("re", "sol")]),
+    # soft -> natural down
+    dict(source="soft", dir="down", target="natural", moves=[("re", "fa")]),
+
 ]
 
 '''
@@ -128,11 +74,20 @@ class Tinctoris15CenturyGamutGraph(GamutGraph):
         **kwargs,
     ):
         if hexachords is None:
-            bases = ["G2", "C3", "F4", "G3", "C4", "F4", "G4"]
+            bases = ["G2", "C3", "F3", "G3", "C4", "F4", "G4"]
             hexachords = [HexachordGraph(base, **hexachord_kws) for base in bases]
         super().__init__(hexachords=hexachords, mutations=mutations, **kwargs)
 
 register_gamut(Tinctoris15CenturyGamutGraph)
+
+
+def get_vera_pitch(pitch: Pitch):
+    has_sharp = pitch.accidental and pitch.accidental.name == 'sharp'
+    return pitch.step if has_sharp else pitch.name
+
+
+def match_without_ficta_sharps(node: GamutGraphNode, target: Pitch) -> bool:
+    return get_vera_pitch(node[1]) == get_vera_pitch(target)
 
 
 class Tinctoris15cSolmizer(Solmizer):
@@ -146,5 +101,51 @@ class Tinctoris15cSolmizer(Solmizer):
         **kws,
     ):
         super().__init__(input, key=key, mismatch_penalty=mismatch_penalty, **kws)
+
+
+    def preprocess_input_and_opts(self, input, **kws):
+        input, opts = super().preprocess_input_and_opts(input, **kws)
+
+        if opts.get("key", None) is None:
+            raise ValueError(
+                "Please specify the 'key' or make sure the stream has a KeySignature."
+            )
+        elif opts.get("key") not in [0, -1]:
+            raise ValueError(f"Unsupported key signature ({opts['key']}).")
+
+        # perhaps check if F below gamma is present and warn if so...?
+        # ...or change to a version with with one additional hexachord from F in gamut.
+
+        return input, opts
+
+
+    def get_gamut_graph(self):
+
+        return Tinctoris15CenturyGamutGraph(hexachord_kws=dict(fa_super_la=False))
+
+
+    def get_rollout_graph(self, gamut, pitches, **kws):
+
+        # Based on continental_16c solmizer.
+
+        rollout = RolloutGraph(gamut, pitches, match_fn=match_without_ficta_sharps, **kws)
+
+        # Adjust the rollout
+        for time, target in zip(rollout.input_timesteps, rollout.sequence):
+            for node in rollout.timesteps[time]:
+                _, (_, pitch) = node
+                if pitch != target:
+                    for predecessor in rollout.predecessors(node):
+                        rollout[predecessor][node]["weight"] += self.opts.get(
+                            "mismatch_penalty"
+                        )
+
+        return rollout
+
+
+    def get_pathfinder(self, rollout, **kws):
+        ### !!! What follows is copy-paste from continental_16c solmizer.
+        # SegmentsGraph
+        return SegmentedPathfinder(rollout, **kws)
 
 register_solmizer(Tinctoris15cSolmizer)
