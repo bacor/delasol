@@ -323,10 +323,11 @@ class NameFormatter(Formatter):
         output = []
         for node in path:
             syllable = self.gamut.nodes[node]["syllable"]
+            print(node)
             if unicode:
-                base_str = node[0].unicodeNameWithOctave
+                base_str = node[1].unicodeNameWithOctave
             else:
-                base_str = node[0].nameWithOctave
+                base_str = node[1].nameWithOctave
             output.append(f"{syllable}_{base_str}")
         return output
 
