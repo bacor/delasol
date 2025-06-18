@@ -94,8 +94,11 @@ def get_vera_pitch(pitch: Pitch):
     string
         Pitch name (without sharp symbol, if it contained one).
     """
-    has_sharp = pitch.accidental and pitch.accidental.name == 'sharp'
-    return pitch.step if has_sharp else pitch.name
+    if pitch.step == 'B':
+        return pitch.name
+    else:
+        has_sharp = pitch.accidental and pitch.accidental.name == 'sharp'
+        return pitch.step if has_sharp else pitch.name
 
 
 def match_without_ficta_sharps(node: GamutGraphNode, target: Pitch) -> bool:
