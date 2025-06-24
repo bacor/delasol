@@ -36,7 +36,7 @@ TINCTORIS_MUTATIONS = [
     dict(source="soft", dir="up", target="hard", moves=[("re", "re")]),
     dict(source="soft", dir="up", target="hard", moves=[("sol", "sol")]),
     # hard -> soft up
-    dict(source="hard", dir="up", target="soft", moves=[("ut", "mi")]), # ???
+    dict(source="hard", dir="up", target="soft", moves=[("re", "fa")]), # ???
     # soft -> natural up
     dict(source="soft", dir="up", target="natural", moves=[("sol", "re")]),
 
@@ -45,8 +45,8 @@ TINCTORIS_MUTATIONS = [
     # natural -> soft down
     dict(source="natural", dir="down", target="soft", moves=[("re", "sol")]),
     # hard -> soft down
-    dict(source="hard", dir="down", target="soft", moves=[("sol", "sol")]),
-    dict(source="hard", dir="down", target="soft", moves=[("re", "re")]), # ?
+    dict(source="hard", dir="down", target="soft", moves=[("fa", "fa")]),
+    dict(source="hard", dir="down", target="soft", moves=[("ut", "ut")]), # ?
     # soft -> hard down
     dict(source="soft", dir="down", target="hard", moves=[("la", "fa")]),
     # hard -> natural down
@@ -81,39 +81,11 @@ class Tinctoris15CenturyGamutGraph(GamutGraph):
 register_gamut(Tinctoris15CenturyGamutGraph)
 
 
-def get_vera_pitch(pitch: Pitch):
-    """Return pitch name without a sharp.
+def match_musica_vera(node: GamutGraphNode, target: Pitch) -> bool:
+    """Check if a node matches a target pitch using musica vera criterion.
 
-    Parameters
-    ----------
-    pitch : Pitch
-        Music21's pitch object.
-
-    Returns
-    -------
-    string
-        Pitch name (without sharp symbol, if it contained one).
-    """
-    if pitch.step == 'B':
-        return pitch.name
-    else:
-        has_sharp = pitch.accidental and pitch.accidental.name == 'sharp'
-        return pitch.step if has_sharp else pitch.name
-
-
-def match_without_ficta_sharps(node: GamutGraphNode, target: Pitch) -> bool:
-    """Check if a node matches a target pitch ignoring sharp (if it had one).
-
-    In XV-century music, sharps resulting in a leading-tone
-    are most often part to the musica ficta. This cannot be said
-    about the flats, usually meant for denoting the 'fa' syllable,
-    especially on B rotundum.
-    Thus, comparison *most likely* _in some cases_ can happen
-    without taking sharps into account.
-
-    We achieve that by comparing the music21 pitch's name
-    (if it contains no accidental or flat) OR step (i.e. note letter without accidental,
-    if it contains sharp).
+    Musica vera is a collection of pitches from "G gamma ut" up to "e la".
+    It contains all diatonic pitches and "B molle" (b-flat).
 
     Parameters
     ----------
@@ -125,9 +97,16 @@ def match_without_ficta_sharps(node: GamutGraphNode, target: Pitch) -> bool:
     Returns
     -------
     bool
-        True if the diatonic note numbers of the node and the target pitch match.
+        Comparison on musica verat criterions.
     """
-    return get_vera_pitch(node[1]) == get_vera_pitch(target)
+
+    diatonic_match = node[1].diatonicNoteNum == target.diatonicNoteNum
+    if not diatonic_match:
+        return False
+    elif node[1].step == 'B' and target.step == 'B':
+       return node[1].name == target.name
+    else:
+        return True
 
 
 class Tinctoris15cSolmizer(Solmizer):
@@ -166,8 +145,7 @@ class Tinctoris15cSolmizer(Solmizer):
     def get_rollout_graph(self, gamut, pitches, **kws):
 
         # Copied from continental_16c solmizer.
-
-        rollout = RolloutGraph(gamut, pitches, match_fn=match_without_ficta_sharps, **kws)
+        rollout = RolloutGraph(gamut, pitches, match_fn=match_musica_vera, **kws)
 
         # Adjust the rollout
         for time, target in zip(rollout.input_timesteps, rollout.sequence):
