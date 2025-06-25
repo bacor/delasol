@@ -359,7 +359,6 @@ class RolloutGraph(nx.DiGraph):
         for prev_value, next_value in zip(self.__seq, self.__seq[1:]):
             # Find all paths from prev_value to next_value
             paths = self.shortest_paths_base(prev_value, next_value)
-            print(prev_value, next_value)
             paths = [p for p in paths if p[0] in prev_nodes]
             if len(paths) == 0:
                 raise Exception("This sequence could not be parsed")
