@@ -4,8 +4,8 @@ from delasol.graphs.gamut_graph import GamutGraph, register_gamut
 from delasol.graphs.hexachord_graph import HexachordGraph
 from delasol.solmizers.solmizer import register_solmizer
 
-from tinctoris_15c import Tinctoris15cSolmizer
-from continental_16c import CONTINENTAL_MUTATIONS
+from .tinctoris_15c import Tinctoris15cSolmizer
+from .continental_16c import CONTINENTAL_MUTATIONS
 
 class Coclico16CenturyGamutGraph(GamutGraph):
     name = "coclico_16c"
