@@ -7,3 +7,4 @@
 from delasol.solmizers.solmizer import solmize
 import delasol.solmizers.continental_16c
 import delasol.solmizers.tinctoris_15c
+import delasol.solmizers.coclico_16c
